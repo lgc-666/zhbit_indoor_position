@@ -1,6 +1,8 @@
-package test.school.bean;
+package zhbit.za102.bean;
 
-public class Device {
+import java.io.Serializable;
+
+public class Device implements Serializable {
     private Integer deviceid;
 
     private String devicename;

@@ -1,6 +1,8 @@
-package test.school.bean;
+package zhbit.za102.bean;
 
-public class Logrecord {
+import java.io.Serializable;
+
+public class Logrecord implements Serializable {
     private Integer logid;
 
     private String id;

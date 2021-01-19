@@ -65,11 +65,11 @@
         <generatedKey column="mid" sqlStatement="JDBC"/>
     </table>
 
-    <table tableName="device" domainObjectName="Device" enableCountByExample="true" enableUpdateByExample="true" enableDeleteByExample="true" enableSelectByExample="true" selectByExampleQueryId="true">
+    <table tableName="device01" domainObjectName="Device" enableCountByExample="true" enableUpdateByExample="true" enableDeleteByExample="true" enableSelectByExample="true" selectByExampleQueryId="true">
         <property name="my.isgen.usekeys" value="true"/>
         <generatedKey column="deviceid" sqlStatement="JDBC"/>
     </table>
-    <table tableName="logrecord" domainObjectName="Logrecord" enableCountByExample="true" enableUpdateByExample="true" enableDeleteByExample="true" enableSelectByExample="true" selectByExampleQueryId="true">
+    <table tableName="logrecord01" domainObjectName="Logrecord" enableCountByExample="true" enableUpdateByExample="true" enableDeleteByExample="true" enableSelectByExample="true" selectByExampleQueryId="true">
         <property name="my.isgen.usekeys" value="true"/>
         <generatedKey column="logid" sqlStatement="JDBC"/>
     </table>

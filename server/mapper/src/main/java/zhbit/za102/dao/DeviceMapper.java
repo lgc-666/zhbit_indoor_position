@@ -1,10 +1,11 @@
-package test.school.dao;
+package zhbit.za102.dao;
 
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
-import test.school.bean.Device;
-import test.school.bean.DeviceExample;
-
+import org.springframework.stereotype.Component;
+import zhbit.za102.bean.Device;
+import zhbit.za102.bean.DeviceExample;
+@Component
 public interface DeviceMapper {
     long countByExample(DeviceExample example);
 

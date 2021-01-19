@@ -1,10 +1,11 @@
-package test.school.dao;
+package zhbit.za102.dao;
 
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
-import test.school.bean.Logrecord;
-import test.school.bean.LogrecordExample;
-
+import org.springframework.stereotype.Component;
+import zhbit.za102.bean.Logrecord;
+import zhbit.za102.bean.LogrecordExample;
+@Component
 public interface LogrecordMapper {
     long countByExample(LogrecordExample example);
 
@@ -27,4 +28,6 @@ public interface LogrecordMapper {
     int updateByPrimaryKeySelective(Logrecord record);
 
     int updateByPrimaryKey(Logrecord record);
+
+    List<String> findAllLogrecord();
 }

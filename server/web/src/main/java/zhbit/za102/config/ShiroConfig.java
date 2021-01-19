@@ -108,6 +108,26 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/getDBlocationNotRepeat", "perms[getDBlocationNotRepeat]");
         filterChainDefinitionMap.put("/listByMac", "perms[listByMac]");
 
+        filterChainDefinitionMap.put("/listVisit", "perms[listVisit]");
+        filterChainDefinitionMap.put("/deleteVisit", "perms[deleteVisit]");
+        filterChainDefinitionMap.put("/updateVisit", "perms[updateVisit]");
+        filterChainDefinitionMap.put("/addVisit", "perms[addVisit]");
+
+        filterChainDefinitionMap.put("/listStopVisit", "perms[listStopVisit]");
+        filterChainDefinitionMap.put("/deleteStopVisit", "perms[deleteStopVisit]");
+        filterChainDefinitionMap.put("/updateStopVisit", "perms[updateStopVisit]");
+        filterChainDefinitionMap.put("/addStopVisit", "perms[addStopVisit]");
+
+        filterChainDefinitionMap.put("/listVisit", "perms[listDevice]");
+        filterChainDefinitionMap.put("/deleteVisit", "perms[deleteDevice]");
+        filterChainDefinitionMap.put("/updateVisit", "perms[updateDevice]");
+        filterChainDefinitionMap.put("/addVisit", "perms[addDevice]");
+
+        filterChainDefinitionMap.put("/listVisit", "perms[listLogrecord]");
+        filterChainDefinitionMap.put("/deleteVisit", "perms[deleteLogrecord]");
+        filterChainDefinitionMap.put("/updateVisit", "perms[updateLogrecord]");
+        filterChainDefinitionMap.put("/addVisit", "perms[addLogrecord]");
+
         filterChainDefinitionMap.put("/**", "url");
         shiroFilterFactoryBean.setFilters(customisedFilter);
         shiroFilterFactoryBean.setFilterChainDefinitionMap(filterChainDefinitionMap);

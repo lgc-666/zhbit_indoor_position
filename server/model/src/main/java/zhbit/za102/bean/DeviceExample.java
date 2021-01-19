@@ -1,4 +1,4 @@
-package test.school.bean;
+package zhbit.za102.bean;
 
 import java.util.ArrayList;
 import java.util.List;
