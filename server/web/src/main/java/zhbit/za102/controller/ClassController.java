@@ -12,6 +12,16 @@ public class ClassController {
     @Autowired
     ClassService classService;
 
+    @GetMapping("/listClassNoPage")
+    public Msg list()throws Exception {  //所有用户
+        try {
+            return new Msg(classService.list());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Msg("查询失败", 401);
+        }
+    }
+
     @GetMapping("/listClass")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
                     @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户

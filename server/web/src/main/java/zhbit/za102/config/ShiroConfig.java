@@ -99,6 +99,7 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/updatemachine", "perms[updatemachine]");
         filterChainDefinitionMap.put("/addmachine", "perms[addmachine]");
 
+        filterChainDefinitionMap.put("/listClassNoPage", "perms[listClassNoPage]");
         filterChainDefinitionMap.put("/listClass", "perms[listClass]");
         filterChainDefinitionMap.put("/deleteClass", "perms[deleteClass]");
         filterChainDefinitionMap.put("/updateClass", "perms[updateClass]");
@@ -127,6 +128,11 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/deleteVisit", "perms[deleteLogrecord]");
         filterChainDefinitionMap.put("/updateVisit", "perms[updateLogrecord]");
         filterChainDefinitionMap.put("/addVisit", "perms[addLogrecord]");
+
+
+        filterChainDefinitionMap.put("/getMainData", "perms[getMainData]");
+        filterChainDefinitionMap.put("/getCustomerPerHour", "perms[getCustomerPerHour]");
+        filterChainDefinitionMap.put("/getInCustomerPerHour", "perms[getInCustomerPerHour]");
 
         filterChainDefinitionMap.put("/**", "url");
         shiroFilterFactoryBean.setFilters(customisedFilter);

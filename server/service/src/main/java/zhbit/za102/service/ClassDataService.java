@@ -7,9 +7,7 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import zhbit.za102.bean.ClassData;
-import zhbit.za102.bean.ClassDataExample;
-import zhbit.za102.bean.Msg;
+import zhbit.za102.bean.*;
 import zhbit.za102.dao.ClassDataMapper;
 
 import java.util.List;
@@ -64,4 +62,14 @@ public class ClassDataService {
     public void updateWithin1hour(Integer hours,Integer num){ classDataMapper.updateWithin1hour(hours,num); }
     public void insertClassData(String address,Integer hours){ classDataMapper.insertClassData(address,hours); }
 
+    public List<ClassData> getMainData(String address,String dateTime) {//获取主要数据
+        return classDataMapper.getMainData(address,dateTime);
+    }
+
+    public List<CustomerPerHour> getCustomerPerHour(String address, String dateTime) {//获取主要数据
+        return classDataMapper.getCustomerPerHour(address,dateTime);
+    }
+    public List<InCustomerPerHour> getInCustomerPerHour(String address, String dateTime) {//获取主要数据
+        return classDataMapper.getInCustomerPerHour(address,dateTime);
+    }
 }

@@ -5,6 +5,9 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
 import zhbit.za102.bean.ClassData;
 import zhbit.za102.bean.ClassDataExample;
+import zhbit.za102.bean.CustomerPerHour;
+import zhbit.za102.bean.InCustomerPerHour;
+
 @Component
 public interface ClassDataMapper {
     long countByExample(ClassDataExample example);
@@ -41,4 +44,9 @@ public interface ClassDataMapper {
 
     void updateExtraJumpOut(@Param("address")String address);
     void deleteExpiredShop_data();
+
+    //获取主要数据
+    List<ClassData> getMainData(@Param("address") String address, @Param("dateTime") String dateTime);
+    List<CustomerPerHour> getCustomerPerHour(@Param("address")String address, @Param("dateTime")String dateTime);
+    List<InCustomerPerHour> getInCustomerPerHour(@Param("address")String address, @Param("dateTime")String dateTime);
 }

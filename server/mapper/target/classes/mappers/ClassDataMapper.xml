@@ -13,6 +13,17 @@
     <result column="updatetime" jdbcType="TIMESTAMP" property="updatetime" />
     <result column="hours" jdbcType="INTEGER" property="hours" />
   </resultMap>
+  <!--获取展示数据值-->
+  <select id="getMainData" resultType="zhbit.za102.bean.ClassData" >
+    select  id,adress,new_student as newStudent,in_class_number as inClassNumber,jump_out as jumpOut,class_now_number as classNowNumber,hour_class_number as hourClassNumber,hour_in_class_number as hourInClassNumber,updatetime,hours from class_data where adress = #{address} and  ( datediff ( updatetime , #{dateTime} ) = 0 ) order by updatetime desc
+  </select>
+  <select id="getCustomerPerHour" resultType="zhbit.za102.bean.CustomerPerHour" >
+    select hour_class_number,hours from class_data where adress = #{address} and  ( datediff ( updatetime , #{dateTime} ) = 0 ) order by updatetime desc
+  </select>
+  <select id="getInCustomerPerHour" resultType="zhbit.za102.bean.InCustomerPerHour" >
+    select hour_in_class_number,hours from class_data where adress = #{address} and  ( datediff ( updatetime , #{dateTime} ) = 0 ) order by updatetime desc
+  </select>
+
 
   <!--找当前时间和更新时间的差在1小时内的-->
   <select id="selectWithin1hour" resultType="java.lang.Integer" >
