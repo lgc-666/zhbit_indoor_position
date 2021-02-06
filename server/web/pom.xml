@@ -11,6 +11,8 @@
 
     <artifactId>web</artifactId>
 
+    <packaging>jar</packaging>
+
     <properties>
         <java.version>1.8</java.version>
     </properties>
@@ -163,10 +165,24 @@
     </dependencies>
 
     <build>
+        <!-- 为jar包取名 -->
+        <finalName>zhbit_indoor_position</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+
+                <configuration>
+                    <mainClass>zhbit.za102.Za102Application</mainClass>
+                    <classifier>exec</classifier>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal><!--可以把依赖的包都打包到生成的Jar包中-->
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.mybatis.generator</groupId>
@@ -183,6 +199,12 @@
                     <overwrite>true</overwrite>
                     <configurationFile>${basedir}/src/main/resources/generator/generatorConfig.xml</configurationFile>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.0.0</version>
             </plugin>
         </plugins>
 
@@ -206,6 +228,7 @@
                 <filtering>false</filtering>  <!-- 是否使用过滤器 -->
             </resource>
         </resources>
+
     </build>
 
 </project>

@@ -11,6 +11,8 @@
 
     <artifactId>commons</artifactId>
 
+    <packaging>jar</packaging>
+
     <dependencies>
         <!-- redis -->
         <dependency>
@@ -19,4 +21,22 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <!-- 为war包取名 -->
+        <finalName>zhbit_indoor_position</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.0.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>zhbit.za102.Za102Application</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

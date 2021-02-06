@@ -8,7 +8,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import zhbit.za102.Utils.PortUtil;
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages="zhbit.za102")
 @ServletComponentScan
 @EnableCaching
 @MapperScan(basePackages = {"zhbit.za102.dao"})

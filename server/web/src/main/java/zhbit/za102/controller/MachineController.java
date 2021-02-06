@@ -1,5 +1,6 @@
 package zhbit.za102.controller;
 
+import org.joda.time.DateTimeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import zhbit.za102.bean.Machine;
@@ -7,7 +8,9 @@ import zhbit.za102.bean.Msg;
 import zhbit.za102.service.MachineService;
 
 import java.text.SimpleDateFormat;
+import java.time.OffsetDateTime;
 import java.util.Date;
+import java.util.TimeZone;
 
 
 @RestController
@@ -44,8 +47,11 @@ public class MachineController {
             c.setAdress(adress);
             c.setMachineid(machineid);
             //String转成Date
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            Date date = sdf.parse(beat);
+            //SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            //Date date = sdf.parse(beat);
+            SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+            isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            Date date = isoFormat.parse(beat);  //"2010-05-23T09:01:02"
             c.setBeat(date);
             if(leastRssi!=null){
                 c.setLeastrssi(leastRssi);
