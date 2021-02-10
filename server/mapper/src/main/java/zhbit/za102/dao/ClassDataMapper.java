@@ -3,10 +3,7 @@ package zhbit.za102.dao;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
-import zhbit.za102.bean.ClassData;
-import zhbit.za102.bean.ClassDataExample;
-import zhbit.za102.bean.CustomerPerHour;
-import zhbit.za102.bean.InCustomerPerHour;
+import zhbit.za102.bean.*;
 
 @Component
 public interface ClassDataMapper {
@@ -49,4 +46,5 @@ public interface ClassDataMapper {
     List<ClassData> getMainData(@Param("address") String address, @Param("dateTime") String dateTime);
     List<CustomerPerHour> getCustomerPerHour(@Param("address")String address, @Param("dateTime")String dateTime);
     List<InCustomerPerHour> getInCustomerPerHour(@Param("address")String address, @Param("dateTime")String dateTime);
+    List<SumData> getSum(@Param("dateTime")String dateTime);
 }

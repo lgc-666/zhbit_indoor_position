@@ -28,7 +28,7 @@
 
     <build>
         <!-- 为jar包取名 -->
-        <finalName>zhbit_indoor_position</finalName>
+        <finalName>za102</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

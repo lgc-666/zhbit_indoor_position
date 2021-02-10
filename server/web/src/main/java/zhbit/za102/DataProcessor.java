@@ -26,7 +26,7 @@ import java.util.*;
 @Component
 public class DataProcessor implements CommandLineRunner {
     //监听器端口（全局常量）
-    private final static int PORT = 3020;
+    private final static int PORT = 3021;
     private DatagramSocket ds;
     private DatagramPacket dp;
     private byte[] buf = null;

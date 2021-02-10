@@ -13,6 +13,12 @@
     <result column="updatetime" jdbcType="TIMESTAMP" property="updatetime" />
     <result column="hours" jdbcType="INTEGER" property="hours" />
   </resultMap>
+
+  <!--获取展示数据值-->
+  <select id="getSum" resultType="zhbit.za102.bean.SumData" >
+    SELECT SUM(in_class_number) AS sum_in ,SUM(new_student) AS sum_new FROM class_data where ( datediff ( updatetime , #{dateTime} ) = 0 )
+  </select>
+
   <!--获取展示数据值-->
   <select id="getMainData" resultType="zhbit.za102.bean.ClassData" >
     select  id,adress,new_student as newStudent,in_class_number as inClassNumber,jump_out as jumpOut,class_now_number as classNowNumber,hour_class_number as hourClassNumber,hour_in_class_number as hourInClassNumber,updatetime,hours from class_data where adress = #{address} and  ( datediff ( updatetime , #{dateTime} ) = 0 ) order by updatetime desc

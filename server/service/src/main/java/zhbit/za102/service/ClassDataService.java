@@ -62,6 +62,10 @@ public class ClassDataService {
     public void updateWithin1hour(Integer hours,Integer num){ classDataMapper.updateWithin1hour(hours,num); }
     public void insertClassData(String address,Integer hours){ classDataMapper.insertClassData(address,hours); }
 
+    public List<SumData> getSum(String dateTime) {//获取当天室内总数据
+        return classDataMapper.getSum(dateTime);
+    }
+
     public List<ClassData> getMainData(String address,String dateTime) {//获取主要数据
         return classDataMapper.getMainData(address,dateTime);
     }

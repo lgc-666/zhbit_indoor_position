@@ -23,7 +23,7 @@
 
     <build>
         <!-- 为war包取名 -->
-        <finalName>zhbit_indoor_position</finalName>
+        <finalName>za102</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
