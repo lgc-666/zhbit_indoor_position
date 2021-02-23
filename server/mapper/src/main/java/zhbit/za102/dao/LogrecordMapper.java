@@ -30,4 +30,6 @@ public interface LogrecordMapper {
     int updateByPrimaryKey(Logrecord record);
 
     List<String> findAllLogrecord();
+
+    void addchange(@Param("id")String id,@Param("changevalue")String changevalue,@Param("gentime")String gentime);
 }

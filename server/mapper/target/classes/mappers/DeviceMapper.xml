@@ -14,6 +14,23 @@
     <result column="ip" jdbcType="VARCHAR" property="ip" />
     <result column="port" jdbcType="INTEGER" property="port" />
   </resultMap>
+
+  <update id="updatebyid" >
+        UPDATE
+        device01
+        SET
+        devicetype = #{devicetype},devicevalue = #{devicevalue},lasttime = #{lasttime},ip= #{ip},port= #{port},gentime= #{gentime}
+        WHERE
+        id=#{deviceid}
+ </update>
+
+  <insert id="insertdevice">
+        insert into device01
+        (id,devicetype,devicevalue,lasttime,ip,port,gentime)
+        values
+        (#{deviceid},#{devicetype},#{devicevalue},#{lasttime},#{ip},#{port},#{gentime})
+  </insert>
+
   <sql id="Example_Where_Clause">
     <where>
       <foreach collection="oredCriteria" item="criteria" separator="or">

@@ -30,11 +30,12 @@ public interface StopVisitMapper {
 
     int updateByPrimaryKey(StopVisit record);
 
-    void updateCustomer(@Param("mac")String mac, @Param("rssi")Integer rssi, @Param("first_in_time") Timestamp first_in_time, @Param("latest_in_time")Timestamp latest_in_time, @Param("beat")Timestamp beat, @Param("inJudge")Integer inJudge, @Param("visited_times")Integer visited_times, @Param("handleJudge")Integer handleJudge, @Param("rt")String rt);
+    void updateCustomer(@Param("address")String address,@Param("mac")String mac, @Param("rssi")Integer rssi, @Param("first_in_time") Timestamp first_in_time, @Param("latest_in_time")Timestamp latest_in_time, @Param("beat")Timestamp beat, @Param("inJudge")Integer inJudge, @Param("visited_times")Integer visited_times, @Param("handleJudge")Integer handleJudge, @Param("rt")String rt);
 
     List<String> searchExtraJumpOut();
 
     void updateInjudge();
+    void updateInjudge2(@Param("inJudge")Integer inJudge,@Param("mac")String mac,@Param("atAddress")String atAddress);
 
     void deleteExpiredCustomer();
 }

@@ -55,7 +55,12 @@ public class LogrecordService {
     public List<Logrecord> listbyId(String id) {
         LogrecordExample example = new LogrecordExample();
         example.createCriteria().andIdEqualTo(id);
+        example.setOrderByClause("logid desc");
         return logrecordMapper.selectByExample(example);
     }
 
+    @CacheEvict(value="Logrecord",allEntries = true)
+    public void addchange(String id,String changevalue,String gentime){
+        logrecordMapper.addchange(id,changevalue,gentime);
+    }
 }

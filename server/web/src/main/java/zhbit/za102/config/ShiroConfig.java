@@ -134,6 +134,12 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/getCustomerPerHour", "perms[getCustomerPerHour]");
         filterChainDefinitionMap.put("/getInCustomerPerHour", "perms[getInCustomerPerHour]");
 
+        filterChainDefinitionMap.put("/sortVisit", "perms[sortVisit]");
+        filterChainDefinitionMap.put("/sortStoptime", "perms[sortStoptime]");
+        filterChainDefinitionMap.put("/sortNow", "perms[sortNow]");
+
+        filterChainDefinitionMap.put("/updateStatus", "perms[updateStatus]");
+
         filterChainDefinitionMap.put("/**", "url");
         shiroFilterFactoryBean.setFilters(customisedFilter);
         shiroFilterFactoryBean.setFilterChainDefinitionMap(filterChainDefinitionMap);

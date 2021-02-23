@@ -9,6 +9,13 @@
     <result column="gentime" jdbcType="VARCHAR" property="gentime" />
   </resultMap>
 
+  <insert id="addchange">
+        insert into logrecord01
+        (id,changevalue,gentime)
+        values
+        (#{id},#{changevalue},#{gentime})
+  </insert>
+
   <select id="findAllLogrecord" resultType="java.lang.String" >
     select id from logrecord01
   </select>

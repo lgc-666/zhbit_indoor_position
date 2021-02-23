@@ -28,4 +28,7 @@ public interface DeviceMapper {
     int updateByPrimaryKeySelective(Device record);
 
     int updateByPrimaryKey(Device record);
+
+    void updatebyid(@Param("deviceid")String deviceid,@Param("devicetype")String devicetype,@Param("devicevalue")String devicevalue,@Param("lasttime")String lasttime,@Param("ip")String ip,@Param("port")Integer port,@Param("gentime")String gentime);
+    void insertdevice(@Param("deviceid")String deviceid,@Param("devicetype")String devicetype,@Param("devicevalue")String devicevalue,@Param("lasttime")String lasttime,@Param("ip")String ip,@Param("port")Integer port,@Param("gentime")String gentime);
 }

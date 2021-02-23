@@ -11,6 +11,11 @@
     <result column="x" jdbcType="VARCHAR" property="x" />
     <result column="y" jdbcType="VARCHAR" property="y" />
   </resultMap>
+
+  <select id="getmachineid" resultType="zhbit.za102.bean.Machine" >
+    select * from machine where machineid = #{machineid}
+  </select>
+
   <sql id="Example_Where_Clause">
     <where>
       <foreach collection="oredCriteria" item="criteria" separator="or">
@@ -255,7 +260,8 @@
         UPDATE
         machine
         SET
-        status = #{status}
+        status = #{status},
+        beat = NOW()
         WHERE
         machineid = #{machineid};
   </update>

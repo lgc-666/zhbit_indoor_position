@@ -53,19 +53,30 @@ public class DataUtil {
      */
     public  boolean checkExist(String mac,String address){
         //先看缓存有没有，没有就到数据库去找，数据库有就放入缓存
-        if ((redisUtil.hget("visit",mac+'-'+address)!=null)||(redisUtil.hget("stopvisit",mac+'-'+address)!=null))
+        if ((redisUtil.hget("visit",mac+'-'+address)!=null)||(redisUtil.hget("stopvisit",mac+'-'+address)!=null)){
+            System.out.println("扣1");
             return true;
+        }
         else{
-            List<Visit> visits = visitService.findvisitByMac(mac);
+            System.out.println("扣2");
+            List<Visit> visits = visitService.findvisitByMac(mac,address);
             List<StopVisit> stopvisits = stopVisitService.findstopVisitByMac(mac);
-            if (visits.isEmpty()||stopvisits.isEmpty())
+            if (visits.isEmpty()||stopvisits.isEmpty()){
+                System.out.println("扣3");
                 return false;  //数据库中没有才给在进程中插入new_student值
+            }
             else{
+                System.out.println("扣4");
                 if(!visits.isEmpty()){
-                    cacheMac(visits.get(0).getAddress(),visits.get(0).getInjudge(),visits.get(0).getInTime(),visits.get(0).getLeftTime(),visits.get(0).getRt(),visits.get(0).getVisitedTimes(),visits.get(0).getBeat(),visits.get(0).getLastInTime(),visits.get(0).getMac(),visits.get(0).getRssi());
+                    for(int i=0; i<visits.size();i++)
+                    {
+                        cacheMac(visits.get(i).getAddress(),visits.get(i).getInjudge(),visits.get(i).getInTime(),visits.get(i).getLeftTime(),visits.get(i).getRt(),visits.get(i).getVisitedTimes(),visits.get(i).getBeat(),visits.get(i).getLastInTime(),visits.get(i).getMac(),visits.get(i).getRssi());
+                    }
                 }
-                if(!stopvisits.isEmpty()){
-                    cacheStopMac(stopvisits.get(0).getAddress(),stopvisits.get(0).getInjudge(),stopvisits.get(0).getInTime(),stopvisits.get(0).getLeftTime(),stopvisits.get(0).getRt(),stopvisits.get(0).getVisitedTimes(),stopvisits.get(0).getBeat(),stopvisits.get(0).getHandlejudge(),stopvisits.get(0).getMac(),stopvisits.get(0).getRssi());
+                if(!stopvisits.isEmpty()) {
+                    for (int i = 0; i < stopvisits.size(); i++) {
+                        cacheStopMac(stopvisits.get(i).getAddress(), stopvisits.get(i).getInjudge(), stopvisits.get(i).getInTime(), stopvisits.get(i).getLeftTime(), stopvisits.get(i).getRt(), stopvisits.get(i).getVisitedTimes(), stopvisits.get(i).getBeat(), stopvisits.get(i).getHandlejudge(), stopvisits.get(i).getMac(), stopvisits.get(i).getRssi());
+                    }
                 }
                 return true;
             }
@@ -86,8 +97,8 @@ public class DataUtil {
         submacMap.put("visited_times",visited_times);
         submacMap.put("beat",beat);
         submacMap.put("last_in_time",last_in_time);
-        macMap.put(mac+'-'+address,submacMap);
-        redisUtil.hmset("visit",macMap);
+        //macMap.put(mac+'-'+address,submacMap);
+        redisUtil.hset("visit",mac+'-'+address,submacMap);
     }
     public void cacheStopMac(String address, Integer inJudge, Date in_time, Date left_time, String rt, Integer visited_times, Date beat, Integer handleJudge, String mac, Integer rssi){
         macMap = new HashMap<>();
@@ -103,7 +114,8 @@ public class DataUtil {
         submacMap.put("beat",beat);
         submacMap.put("handleJudge",handleJudge);
         macMap.put(mac+'-'+address,submacMap);
-        redisUtil.hmset("stopvisit",macMap);
+        //redisUtil.hmset("stopvisit",macMap);
+        redisUtil.hset("stopvisit",mac+'-'+address,submacMap);
     }
 
     //向普通区域表插数值
@@ -180,11 +192,17 @@ public class DataUtil {
     //获取普通区域的相应mac的用户信息（先找缓存，缓存没有则找数据库并插入到缓存）
     public Map<String,Object> getMacMap(String mac,String address)
     {
-        if (redisUtil.hget("visit",mac+'-'+address)!=null)
+        if (redisUtil.hget("visit",mac+'-'+address)!=null){
+            System.out.println("走第一种");
             return (Map)redisUtil.hget("visit",mac+'-'+address);
-        else{
-            List<Visit> visits = visitService.findvisitByMac(mac);
-            cacheMac(visits.get(0).getAddress(),visits.get(0).getInjudge(),visits.get(0).getInTime(),visits.get(0).getLeftTime(),visits.get(0).getRt(),visits.get(0).getVisitedTimes(),visits.get(0).getBeat(),visits.get(0).getLastInTime(),visits.get(0).getMac(),visits.get(0).getRssi());
+        }
+
+        else {
+            System.out.println("走第2种");
+            List<Visit> visits = visitService.findvisitByMac(mac,address);
+            for (int i = 0; i < visits.size(); i++) {
+                cacheMac(visits.get(i).getAddress(), visits.get(i).getInjudge(), visits.get(i).getInTime(), visits.get(i).getLeftTime(), visits.get(i).getRt(), visits.get(i).getVisitedTimes(), visits.get(i).getBeat(), visits.get(i).getLastInTime(), visits.get(i).getMac(), visits.get(i).getRssi());
+            }
             return (Map)redisUtil.hget("visit",mac+'-'+address);
         }
     }
@@ -195,7 +213,9 @@ public class DataUtil {
             return (Map)redisUtil.hget("stopvisit",mac+'-'+address);
         else{
             List<StopVisit> stopvisits = stopVisitService.findstopVisitByMac(mac);
-            cacheStopMac(stopvisits.get(0).getAddress(),stopvisits.get(0).getInjudge(),stopvisits.get(0).getInTime(),stopvisits.get(0).getLeftTime(),stopvisits.get(0).getRt(),stopvisits.get(0).getVisitedTimes(),stopvisits.get(0).getBeat(),stopvisits.get(0).getHandlejudge(),stopvisits.get(0).getMac(),stopvisits.get(0).getRssi());
+            for (int i = 0; i < stopvisits.size(); i++) {
+                cacheStopMac(stopvisits.get(i).getAddress(), stopvisits.get(i).getInjudge(), stopvisits.get(i).getInTime(), stopvisits.get(i).getLeftTime(), stopvisits.get(i).getRt(), stopvisits.get(i).getVisitedTimes(), stopvisits.get(i).getBeat(), stopvisits.get(i).getHandlejudge(), stopvisits.get(i).getMac(), stopvisits.get(i).getRssi());
+            }
             return (Map)redisUtil.hget("stopvisit",mac+'-'+address);
         }
     }
@@ -419,7 +439,9 @@ public class DataUtil {
 
 
     //计算加权后的坐标
-    public Map<String, Integer>cpoint(Double totalX,Double totalY){
+    public Map<String, Integer>cpoint(Double totalX,Double totalY,String atAddress){
+        Integer MinX=null;
+        Integer MinY=null;
         Map<String, Integer> point=new HashMap<>();
         System.out.println("加权值："+totalWeight);
         Double x=totalX/totalWeight;
@@ -429,7 +451,17 @@ public class DataUtil {
         int y1=(int)Math.round(y);
         Integer x2=Integer.valueOf(x1);
         Integer y2=Integer.valueOf(y1);
-        point.put("macx",x2);
+
+        //加上所在区域的起点坐标X1
+        /**Class classbyAddress=classService.listbyaddress(atAddress).get(0);
+        List<String> list1 = Arrays.asList(StringUtils.split(classbyAddress.getX1(), ","));
+        List<String> listX1 = new ArrayList<>(list1);
+        MinX=Integer.valueOf(listX1.get(0));  //得到原坐标的x、y值
+        MinY=Integer.valueOf(listX1.get(1));
+
+        System.out.println("原坐标X："+MinX+"原坐标y："+MinY);
+        System.out.println("原坐标X2："+x2+"原坐标y2："+y2);**/
+        point.put("macx",x2);  //坐标以改为以原坐标做标准
         point.put("macy",y2);
         System.out.println("加权后的point："+point);
         totalWeight = 0;//一定要归0否则会一直叠加
@@ -445,7 +477,7 @@ public class DataUtil {
         Integer MaxY=null;
         List<Class> classes = classService.list();
         for(Class c:classes){
-            List<String> list1 = Arrays.asList(StringUtils.split(c.getX1(), ","));
+            List<String> list1 = Arrays.asList(StringUtils.split(c.getX1(), ","));  //将（0,20）的坐标形式进行拆分
             List<String> list2 = Arrays.asList(StringUtils.split(c.getX2(), ","));
             List<String> list3 = Arrays.asList(StringUtils.split(c.getY1(), ","));
             List<String> listX1 = new ArrayList<>(list1);

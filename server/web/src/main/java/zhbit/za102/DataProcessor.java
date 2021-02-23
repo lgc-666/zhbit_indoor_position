@@ -1,8 +1,10 @@
 package zhbit.za102;
 
+import ch.qos.logback.core.net.SyslogOutputStream;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.ibatis.jdbc.Null;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.cache.annotation.EnableCaching;
@@ -89,6 +91,7 @@ public class DataProcessor implements CommandLineRunner {
     @Autowired
     LocationMapper locationMapper;
 
+
     @Override
     public void run(String... args) throws Exception {
         try {
@@ -162,7 +165,8 @@ public class DataProcessor implements CommandLineRunner {
                                         //取mac缓存中rssi信号最强的前4个计算
                                         System.out.println("开始计算（x,y）");
                                         Map<String, Object> map = redisUtil.hmget(mac);  //由项返回多个键值对
-                                        List<Map.Entry<String, Integer>> list = new LinkedList(map.entrySet());
+                                        List<Map.Entry<String, Integer>> list = new LinkedList(map.entrySet());//将map变成list
+
                                         // 下面的也可以写成lambda表达式这种形式：Collections.sort(list, (o1, o2) -> o2.getValue().compareTo(o1.getValue()));
                                         Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
                                             @Override
@@ -170,6 +174,16 @@ public class DataProcessor implements CommandLineRunner {
                                                 return o2.getValue().compareTo(o1.getValue()); // 这里改为根据value值进行降序排序(加个负号)，这里也可以改成根据key和value进行排序
                                             }
                                         });
+
+                                          //获取离人最近的设备id
+                                          /**String lateid = list.get(0).getKey();
+                                          //获取该设备所在的区域
+                                          String machineaddress = machineMapper.getmachineid(lateid).getAdress();
+                                          atAddress = machineaddress;
+                                          System.out.println("人所在区域："+atAddress);
+                                           **/
+
+
                                         System.out.println("取前四条数据,并存value");
                                         List<Map<String, Object>> aplist = new ArrayList<>();
                                         for (Map.Entry<String, Integer> p : list.subList(0, 4)) {  //key：设备id，值：rssi
@@ -188,11 +202,13 @@ public class DataProcessor implements CommandLineRunner {
                                             totalX += respoint.get("x");
                                             totalY += respoint.get("y");
                                         }
-                                        macpoint = dataUtil.cpoint(totalX, totalY);
+                                        macpoint = dataUtil.cpoint(totalX, totalY, atAddress);//传入加权后的坐标，输出平均值坐标
                                         System.out.println("人的位置坐标"+macpoint);
+
                                         //根据区域x、y的范围值，判断在哪个区域
                                         atAddress = dataUtil.judgeClass(macpoint.get("macx"), macpoint.get("macy"));
                                         System.out.println("人所在区域："+atAddress);
+
                                         //根据区域名判断是否为禁止区域
                                         StopJudege = dataUtil.Stopjudge(atAddress);
                                         System.out.println("是否为禁止区域："+StopJudege);
@@ -217,11 +233,11 @@ public class DataProcessor implements CommandLineRunner {
                                         }
 
 
-
                                         /**先判断是否存在，注意：同一个区域的同一个mac用更新方式，否则插入**/
                                         //不存在的情况
                                         if (!dataUtil.checkExist(mac, atAddress)) {
                                             //新客人
+                                            System.out.println("新客人");
                                             if (StopJudege == 0) {
                                                 //加入新客人
                                                 dataUtil.insertMac(atAddress, 1, 1, mac, rssi);
@@ -235,26 +251,39 @@ public class DataProcessor implements CommandLineRunner {
                                         }
                                         //mac在普通区域或禁区已存在的情况
                                         else {
+                                            System.out.println("跑这里去");
                                             //更新的是人所在区域的mac信息
                                             if (StopJudege == 0) { //所在区域为普通区域
-                                                macMap = dataUtil.getMacMap(mac, atAddress);
-                                                timeCount = new Long((latest_time.getTime() - (Long) macMap.get("beat")) / (60 * 1000)).intValue();
-                                                //出现间隔（AP再次探测到的时间-上次在店心跳）大于5分钟,再进算进入区域量+1（离开5分钟后再进来相当于再次访问，而5分钟内连续访问的不算是再进）
-                                                if (timeCount >= 5&&(Integer) macMap.get("inJudge") == 0){  //大于5分钟AP检测不到mac心跳视为之前人跑到了室外，然后再重新跑进来才被检测到
-                                                    //上次进店时间为上一次的first_in_time
-                                                    macMap.put("last_in_time", (Long) macMap.get("in_time"));
-                                                    macMap.put("in_time", latest_time);
-                                                    macMap.put("visited_times", (Integer) macMap.get("visited_times") + 1);
-                                                    in_class_number++;
-                                                    hour_in_class_number++;
+                                                macMap = dataUtil.getMacMap(mac, atAddress);  //获取缓存进行处理，没有就从数据库中同步进来
+                                                if(macMap!=null){
+                                                    Iterator<Map.Entry<String, Object>> entries = macMap.entrySet().iterator();
+                                                    while(entries.hasNext()){
+                                                        Map.Entry<String, Object> entry = entries.next();
+                                                        String key = entry.getKey();
+                                                        Object value = entry.getValue();
+                                                        System.out.println("key和value是："+key+":"+value);
+                                                    }
+
+                                                    timeCount = new Long((latest_time.getTime() - (Long) macMap.get("beat")) / (60 * 1000)).intValue();
+                                                    //出现间隔（AP再次探测到的时间-上次在店心跳）大于5分钟,再进算进入区域量+1（离开5分钟后再进来相当于再次访问，而5分钟内连续访问的不算是再进）
+                                                    if (timeCount >= 5&&(Integer) macMap.get("inJudge") == 0){  //大于5分钟AP检测不到mac心跳视为之前人跑到了室外，然后再重新跑进来才被检测到
+                                                        //上次进店时间为上一次的first_in_time
+                                                        macMap.put("last_in_time", (Long) macMap.get("in_time"));
+                                                        macMap.put("in_time", latest_time);
+                                                        macMap.put("visited_times", (Integer) macMap.get("visited_times") + 1);
+                                                        in_class_number++;
+                                                        hour_in_class_number++;
+                                                        //visitMapper.updateInjudge2(0,mac,atAddress);
+                                                    }
+                                                    //出现间隔小于5分钟视为一直在室内（为了方便处理在多个区域间频繁移动的人）
+                                                    macMap.put("left_time", latest_time);
+                                                    macMap.put("beat", latest_time);
+                                                    macMap.put("inJudge", 1);
+                                                    macMap.put("rssi", rssi);
+                                                    //更新cache信息
+                                                    dataUtil.refreshMacCache(mac, atAddress,macMap);
+                                                    visitMapper.updateInjudge2(1,mac,atAddress);
                                                 }
-                                                //出现间隔小于5分钟视为一直在室内（为了方便处理在多个区域间频繁移动的人）
-                                                macMap.put("left_time", latest_time);
-                                                macMap.put("beat", latest_time);
-                                                macMap.put("inJudge", 1);
-                                                macMap.put("rssi", rssi);
-                                                //更新cache信息
-                                                dataUtil.refreshMacCache(mac, atAddress,macMap);
 
                                             } else { //所在区域为禁区
                                                 macMap = dataUtil.getStopMacMap(mac, atAddress);
@@ -264,6 +293,7 @@ public class DataProcessor implements CommandLineRunner {
                                                     macMap.put("visited_times", (Integer) macMap.get("visited_times") + 1);
                                                     in_class_number++;
                                                     hour_in_class_number++;
+                                                    //stopVisitMapper.updateInjudge2(0,mac,atAddress);  //将缓存数据更新到数据库中
                                                 }
                                                 macMap.put("handleJudge", 0);
                                                 macMap.put("left_time", latest_time); //离开时间等价于最后一次在店时间latest_in_time
@@ -272,6 +302,7 @@ public class DataProcessor implements CommandLineRunner {
                                                 macMap.put("rssi", rssi);
                                                 //更新cache信息
                                                 dataUtil.refreshStopMacCache(mac,atAddress, macMap);
+                                                stopVisitMapper.updateInjudge2(1,mac,atAddress);
                                                 System.out.println("更新cache信息完成！");
                                             }
                                         }
@@ -301,7 +332,6 @@ public class DataProcessor implements CommandLineRunner {
                             else{
                                 System.out.println("设备在后台没添加");
                             }
-
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -321,170 +351,163 @@ public class DataProcessor implements CommandLineRunner {
     //此进程用于存储跳出量、动态当前客流量和小时客流量(异步执行进程，因为切换快给人感觉像同时进行一样)
     @Transactional
     @Async
-    @Scheduled(cron = "0/5 * * * * ?")
-    public void dataThread() {  //5秒一次
+    @Scheduled(cron = "0/3 * * * * ?")
+    public void dataThread() {  //3秒一次
         //小时客流量
         Integer subHour_customer = 0;
         //现存人数
         Integer dynamic_customer = 0;
         //跳出量
         Integer jumpOut_customer = 0;
-
         String subAddress = null;
 
         Map<String, Object> countExtraMap = new HashMap<>();
         Map<String, Integer> subCountExtraMap;
         Map<String, Object> subCustomerMap = redisUtil.hmget("visit");
-        latest_time = new Timestamp(System.currentTimeMillis());
-        //普通区域
-        for (Map.Entry<String, Object> subCustomerMap_1 : subCustomerMap.entrySet()) {
-            Object subMac = subCustomerMap_1.getKey();
-            Map<String, Object> subCustomerMap_2 = (Map) redisUtil.hget("visit", (String) subMac);
-            //时间间隔
-            Integer countTime = new Long((latest_time.getTime() - (Long) subCustomerMap_2.get("beat")) / (60 * 1000)).intValue();
-            //大于5分钟没有心跳的店内客人
-            if (countTime >= 5 && (Integer) subCustomerMap_2.get("inJudge") == 1) {
-                Long stayTime = ((Long) subCustomerMap_2.get("left_time") - (Long) subCustomerMap_2.get("in_time")) / 1000;
-                //if (stayTime < 50)  //离开时间（最后一次在店时间）-上次进店小于50秒（进来不到1分钟就走了）
-                //{
-                jumpOut_customer = 1;  //跳出量+1
-                //}
-                subCustomerMap_2.put("inJudge", 0); //不在区域内
-                subCustomerMap_2.put("rt", stayTime.toString()); //停留时间
-            }
-            else if (countTime < 5 && (Integer) subCustomerMap_2.get("inJudge") == 1) { //人在室内
-                dynamic_customer = 1; //现存人数+1
-            }
-            subAddress = (String)subCustomerMap_2.get("address");
-            if (jumpOut_customer!=0||dynamic_customer!=0){
-                if (countExtraMap.get(subAddress)==null){
-                    subCountExtraMap = new HashMap<>();
-                    subCountExtraMap.put("jumpOut_customer",jumpOut_customer);
-                    subCountExtraMap.put("dynamic_customer",dynamic_customer);
-                    countExtraMap.put(subAddress,subCountExtraMap);
-                }else{
-                    subCountExtraMap = (Map)countExtraMap.get(subAddress);
-                    subCountExtraMap.put("jumpOut_customer",subCountExtraMap.get("jumpOut_customer")+jumpOut_customer);
-                    subCountExtraMap.put("dynamic_customer",subCountExtraMap.get("dynamic_customer")+dynamic_customer);
-                    countExtraMap.put(subAddress,subCountExtraMap);
+        if (subCustomerMap!=null){
+            latest_time = new Timestamp(System.currentTimeMillis());
+            //普通区域
+            for (Map.Entry<String, Object> subCustomerMap_1 : subCustomerMap.entrySet()) {
+                Object subMac = subCustomerMap_1.getKey();
+                Map<String, Object> subCustomerMap_2 = (Map) redisUtil.hget("visit", (String) subMac);
+                //时间间隔
+                Integer countTime = new Long((latest_time.getTime() - (Long) subCustomerMap_2.get("beat")) / (60 * 1000)).intValue();
+                //大于5分钟没有心跳的店内客人
+                if (countTime >= 5 && (Integer) subCustomerMap_2.get("inJudge") == 1) {
+                    Long stayTime = ((Long) subCustomerMap_2.get("left_time") - (Long) subCustomerMap_2.get("in_time")) / 1000;
+                    //if (stayTime < 50)  //离开时间（最后一次在店时间）-上次进店小于50秒（进来不到1分钟就走了）
+                    //{
+                    jumpOut_customer = 1;  //跳出量+1
+                    //}
+                    subCustomerMap_2.put("inJudge", 0); //不在区域内
+                    visitMapper.updateInjudge2(0,subMac.toString(),subCustomerMap_2.get("address").toString());
+                    subCustomerMap_2.put("rt", stayTime.toString()); //停留时间
                 }
+                else if (countTime < 5 && (Integer) subCustomerMap_2.get("inJudge") == 1) { //人在室内
+                    dynamic_customer = 1; //现存人数+1
+                }
+                subAddress = (String)subCustomerMap_2.get("address");
+                if (jumpOut_customer!=0||dynamic_customer!=0){
+                    if (countExtraMap.get(subAddress)==null){
+                        subCountExtraMap = new HashMap<>();
+                        subCountExtraMap.put("jumpOut_customer",jumpOut_customer);
+                        subCountExtraMap.put("dynamic_customer",dynamic_customer);
+                        countExtraMap.put(subAddress,subCountExtraMap);
+                    }else{
+                        subCountExtraMap = (Map)countExtraMap.get(subAddress);
+                        subCountExtraMap.put("jumpOut_customer",subCountExtraMap.get("jumpOut_customer")+jumpOut_customer);
+                        subCountExtraMap.put("dynamic_customer",subCountExtraMap.get("dynamic_customer")+dynamic_customer);
+                        countExtraMap.put(subAddress,subCountExtraMap);
+                    }
+                }
+                jumpOut_customer = 0;
+                dynamic_customer = 0;
+                //更新缓存（主要更新inJudge值）
+                redisUtil.hset("visit",subMac.toString(),subCustomerMap_2);
             }
-            jumpOut_customer = 0;
-            dynamic_customer = 0;
-            //更新缓存（主要更新inJudge值）
-            redisUtil.hset("visit",subMac.toString(),subCustomerMap_2);
-        }
 
-        //存到数据库中（遍历上面存储跳出量的map）
-        for (Map.Entry<String, Object> subCustomerMap_1:countExtraMap.entrySet()) {
-            subAddress = subCustomerMap_1.getKey();
-            subCountExtraMap = (Map)subCustomerMap_1.getValue();
-            //查询当前小时进店量
-            subHour_customer = classDataMapper.searchNowHour_in_customer_number(subAddress);
-            //如果当前店面人流量大于小时进店量, 则小时客流量等于当前店面人流量（场景：人进去后一直在店内不出去，那么到了下个小时，小时进店量清0，当前人流就比它大）
-            if (subCountExtraMap.get("dynamic_customer")>subHour_customer)
-                subHour_customer = subCountExtraMap.get("dynamic_customer");
-            if (subHour_customer!=0||subCountExtraMap.get("dynamic_customer")!=0||subCountExtraMap.get("jumpOut_customer")!=0)
-                classDataMapper.updateDataThread(subAddress,subCountExtraMap.get("dynamic_customer"),subCountExtraMap.get("jumpOut_customer"),subHour_customer);
+            //存到数据库中（遍历上面存储跳出量的map）
+            for (Map.Entry<String, Object> subCustomerMap_1:countExtraMap.entrySet()) {
+                subAddress = subCustomerMap_1.getKey();
+                subCountExtraMap = (Map)subCustomerMap_1.getValue();
+                //查询当前小时进店量
+                subHour_customer = classDataMapper.searchNowHour_in_customer_number(subAddress);
+                //如果当前店面人流量大于小时进店量, 则小时客流量等于当前店面人流量（场景：人进去后一直在店内不出去，那么到了下个小时，小时进店量清0，当前人流就比它大）
+                if (subCountExtraMap.get("dynamic_customer")>subHour_customer)
+                    subHour_customer = subCountExtraMap.get("dynamic_customer");
+                if (subHour_customer!=0||subCountExtraMap.get("dynamic_customer")!=0||subCountExtraMap.get("jumpOut_customer")!=0)
+                    classDataMapper.updateDataThread(subAddress,subCountExtraMap.get("dynamic_customer"),subCountExtraMap.get("jumpOut_customer"),subHour_customer);
+            }
         }
 
         //遍历更新设备状态缓存
         Map<String,Object> machineMap = redisUtil.hmget("machineAP");
-        for (Map.Entry<String, Object> subMachineMap:machineMap.entrySet()) {
-            String subMachineId = (String) subMachineMap.getKey();
-            Map<String,Object> subMachineMap_1 = (Map)subMachineMap.getValue();
-            Integer machineCountTime = new Long((latest_time.getTime() - (Long)subMachineMap_1.get("beat")) / (60*1000)).intValue();
-            if (machineCountTime>10)//设备大于10分钟收不到信号则判定为离线
-                subMachineMap_1.put("status","离线");
-            else
-                subMachineMap_1.put("status","在线");
-            redisUtil.hset("machineAP",subMachineId,subMachineMap_1);
-            //将状态存到数据库
-            machineMapper.updateStatus(subMachineMap_1.get("status").toString(),subMachineId);
+        if(machineMap!= null){
+            for (Map.Entry<String, Object> subMachineMap:machineMap.entrySet()) {
+                String subMachineId = (String) subMachineMap.getKey();
+                Map<String,Object> subMachineMap_1 = (Map)subMachineMap.getValue();
+                    Integer machineCountTime = new Long((latest_time.getTime() - (Long)subMachineMap_1.get("beat")) / (60*1000)).intValue();
+                    if (machineCountTime>10)//设备大于10分钟收不到信号则判定为离线
+                        subMachineMap_1.put("status","离线");
+                    else
+                        subMachineMap_1.put("status","在线");
+                    redisUtil.hset("machineAP",subMachineId,subMachineMap_1);
+                    //将状态存到数据库
+                    machineMapper.updateStatus(subMachineMap_1.get("status").toString(),subMachineId);
+            }
         }
+
     }
 
     @Transactional
     @Async
-    @Scheduled(cron = "0/3 * * * * ?")
-    public void dataThread2() {  //3秒一次
+    @Scheduled(cron = "0/5 * * * * ?")
+    public void dataThread2() {  //5秒一次
         //小时客流量
         Integer subHour_customer2 = 0;
         //现存人数
         Integer dynamic_customer2 = 0;
         //跳出量
         Integer jumpOut_customer2 = 0;
-
         String subAddress2 = null;
 
         Map<String, Object> countExtraMap2 = new HashMap<>();
         Map<String, Integer> subCountExtraMap2;
         Map<String, Object> subCustomerMap2 = redisUtil.hmget("stopvisit");
-        latest_time = new Timestamp(System.currentTimeMillis());
-        //禁止区域
-        for (Map.Entry<String, Object> subCustomerMap_1 : subCustomerMap2.entrySet()) {
-            Object subMac = subCustomerMap_1.getKey();
-            Map<String, Object> subCustomerMap_2 = (Map) redisUtil.hget("stopvisit", (String) subMac);
-            //时间间隔
-            Integer countTime = new Long((latest_time.getTime() - (Long) subCustomerMap_2.get("beat")) / (60 * 1000)).intValue();
-            //大于5分钟没有心跳的店内客人
-            if (countTime >= 5 && (Integer) subCustomerMap_2.get("inJudge") == 1) {
-                Long stayTime = ((Long) subCustomerMap_2.get("left_time") - (Long) subCustomerMap_2.get("in_time")) / 1000;
-                //if (stayTime < 50)  //离开时间（最后一次在店时间）-上次进店小于50秒（进来不到1分钟就走了）
-                //{
-                jumpOut_customer2 = 1;  //跳出量+1
-                //}
-                subCustomerMap_2.put("inJudge", 0); //不在区域内
-                subCustomerMap_2.put("rt", stayTime.toString()); //停留时间
-            }
-            else if (countTime < 5 && (Integer) subCustomerMap_2.get("inJudge") == 1) { //人在室内
-                dynamic_customer2 = 1; //现存人数+1
-            }
-            subAddress2 = (String)subCustomerMap_2.get("address");
-            if (jumpOut_customer2!=0||dynamic_customer2!=0){
-                if (countExtraMap2.get(subAddress2)==null){
-                    subCountExtraMap2 = new HashMap<>();
-                    subCountExtraMap2.put("jumpOut_customer",jumpOut_customer2);
-                    subCountExtraMap2.put("dynamic_customer",dynamic_customer2);
-                    countExtraMap2.put(subAddress2,subCountExtraMap2);
-                }else{
-                    subCountExtraMap2 = (Map)countExtraMap2.get(subAddress2);
-                    subCountExtraMap2.put("jumpOut_customer",subCountExtraMap2.get("jumpOut_customer")+jumpOut_customer2);
-                    subCountExtraMap2.put("dynamic_customer",subCountExtraMap2.get("dynamic_customer")+dynamic_customer2);
-                    countExtraMap2.put(subAddress2,subCountExtraMap2);
+        if (subCustomerMap2!=null){
+            latest_time = new Timestamp(System.currentTimeMillis());
+            //禁止区域
+            for (Map.Entry<String, Object> subCustomerMap_1 : subCustomerMap2.entrySet()) {
+                Object subMac = subCustomerMap_1.getKey();
+                Map<String, Object> subCustomerMap_2 = (Map) redisUtil.hget("stopvisit", (String) subMac);
+                //时间间隔
+                Integer countTime = new Long((latest_time.getTime() - (Long) subCustomerMap_2.get("beat")) / (60 * 1000)).intValue();
+                //大于5分钟没有心跳的店内客人
+                if (countTime >= 5 && (Integer) subCustomerMap_2.get("inJudge") == 1) {
+                    Long stayTime = ((Long) subCustomerMap_2.get("left_time") - (Long) subCustomerMap_2.get("in_time")) / 1000;
+                    //if (stayTime < 50)  //离开时间（最后一次在店时间）-上次进店小于50秒（进来不到1分钟就走了）
+                    //{
+                    jumpOut_customer2 = 1;  //跳出量+1
+                    //}
+                    subCustomerMap_2.put("inJudge", 0); //不在区域内
+                    subCustomerMap_2.put("rt", stayTime.toString()); //停留时间
+                    visitMapper.updateInjudge2(0,subMac.toString(),subCustomerMap_2.get("address").toString());
                 }
+                else if (countTime < 5 && (Integer) subCustomerMap_2.get("inJudge") == 1) { //人在室内
+                    dynamic_customer2 = 1; //现存人数+1
+                }
+                subAddress2 = (String)subCustomerMap_2.get("address");
+                if (jumpOut_customer2!=0||dynamic_customer2!=0){
+                    if (countExtraMap2.get(subAddress2)==null){
+                        subCountExtraMap2 = new HashMap<>();
+                        subCountExtraMap2.put("jumpOut_customer",jumpOut_customer2);
+                        subCountExtraMap2.put("dynamic_customer",dynamic_customer2);
+                        countExtraMap2.put(subAddress2,subCountExtraMap2);
+                    }else{
+                        subCountExtraMap2 = (Map)countExtraMap2.get(subAddress2);
+                        subCountExtraMap2.put("jumpOut_customer",subCountExtraMap2.get("jumpOut_customer")+jumpOut_customer2);
+                        subCountExtraMap2.put("dynamic_customer",subCountExtraMap2.get("dynamic_customer")+dynamic_customer2);
+                        countExtraMap2.put(subAddress2,subCountExtraMap2);
+                    }
+                }
+                jumpOut_customer2 = 0;
+                dynamic_customer2 = 0;
+                //更新缓存（主要更新inJudge值）,因为要实时获取区域人数，且区域人数是通过inJudge判断，所以也要更新到数据库中
+                redisUtil.hset("stopvisit",subMac.toString(),subCustomerMap_2);
             }
-            jumpOut_customer2 = 0;
-            dynamic_customer2 = 0;
-            //更新缓存（主要更新inJudge值）
-            redisUtil.hset("stopvisit",subMac.toString(),subCustomerMap_2);
-        }
 
-        //存到数据库中（遍历上面存储跳出量的map）
-        for (Map.Entry<String, Object> subCustomerMap_1:countExtraMap2.entrySet()) {
-            subAddress2 = subCustomerMap_1.getKey();
-            subCountExtraMap2 = (Map)subCustomerMap_1.getValue();
-            //查询当前小时进店量
-            subHour_customer2 = classDataMapper.searchNowHour_in_customer_number(subAddress2);
-            //如果当前店面人流量大于小时进店量, 则小时客流量等于当前店面人流量
-            if (subCountExtraMap2.get("dynamic_customer")>subHour_customer2)
-                subHour_customer2 = subCountExtraMap2.get("dynamic_customer");
-            if (subHour_customer2!=0||subCountExtraMap2.get("dynamic_customer")!=0||subCountExtraMap2.get("jumpOut_customer")!=0)
-                classDataMapper.updateDataThread(subAddress2,subCountExtraMap2.get("dynamic_customer"),subCountExtraMap2.get("jumpOut_customer"),subHour_customer2);
-        }
-
-        //遍历更新设备状态缓存
-        Map<String,Object> machineMap = redisUtil.hmget("machineAP");
-        for (Map.Entry<String, Object> subMachineMap:machineMap.entrySet()) {
-            String subMachineId = (String) subMachineMap.getKey();
-            Map<String,Object> subMachineMap_1 = (Map)subMachineMap.getValue();
-            Integer machineCountTime = new Long((latest_time.getTime() - (Long)subMachineMap_1.get("beat")) / (60*1000)).intValue();
-            if (machineCountTime>10)//设备大于10分钟收不到信号则判定为离线
-                subMachineMap_1.put("status","离线");
-            else
-                subMachineMap_1.put("status","在线");
-            redisUtil.hset("machineAP",subMachineId,subMachineMap_1);
-            machineMapper.updateStatus(subMachineMap_1.get("status").toString(),subMachineId);
+            //存到数据库中（遍历上面存储跳出量的map）
+            for (Map.Entry<String, Object> subCustomerMap_1:countExtraMap2.entrySet()) {
+                subAddress2 = subCustomerMap_1.getKey();
+                subCountExtraMap2 = (Map)subCustomerMap_1.getValue();
+                //查询当前小时进店量
+                subHour_customer2 = classDataMapper.searchNowHour_in_customer_number(subAddress2);
+                //如果当前店面人流量大于小时进店量, 则小时客流量等于当前店面人流量
+                if (subCountExtraMap2.get("dynamic_customer")>subHour_customer2)
+                    subHour_customer2 = subCountExtraMap2.get("dynamic_customer");
+                if (subHour_customer2!=0||subCountExtraMap2.get("dynamic_customer")!=0||subCountExtraMap2.get("jumpOut_customer")!=0)
+                    classDataMapper.updateDataThread(subAddress2,subCountExtraMap2.get("dynamic_customer"),subCountExtraMap2.get("jumpOut_customer"),subHour_customer2);
+            }
         }
     }
 
@@ -493,60 +516,56 @@ public class DataProcessor implements CommandLineRunner {
     @Async
     @Scheduled(cron = "0 0 0/1 * * ?")
     public void saveDataThread(){
-        //普通区域
-        Map<String,Object> subCustomerMap = redisUtil.hmget("visit");
-
-        for (Map.Entry<String, Object> subCustomerMap_1:subCustomerMap.entrySet()) {
-            String subMac = (String) subCustomerMap_1.getKey();
-            Map<String,Object> subCustomerMap_2 = (Map<String, Object>) redisUtil.hget("visit", (String) subMac);
-            String mac = subCustomerMap_2.get("mac").toString();
-            Timestamp first_in_time = new Timestamp((Long)subCustomerMap_2.get("in_time"));
-            Timestamp left_time =  new Timestamp((Long)subCustomerMap_2.get("left_time"));
-            Timestamp last_in_time =  new Timestamp((Long)subCustomerMap_2.get("last_in_time"));
-            Timestamp beat = new Timestamp((Long)subCustomerMap_2.get("beat"));
-            visitMapper.updateCustomer(mac,(Integer)subCustomerMap_2.get("rssi"),first_in_time,left_time,beat,(Integer)subCustomerMap_2.get("inJudge"),(Integer)subCustomerMap_2.get("visited_times"),last_in_time,subCustomerMap_2.get("rt").toString());
-        }
-        //删除缓存
-        redisUtil.del("visit");
-
         //添加下一个小时的区域时间=======================》数据表小时插入区域的关键
         dataUtil.insertClassData();
-        visitMapper.updateInjudge();
-
-        //补充遗漏的跳出量
- /*     List<String> extraJumpOutAddressList = visitMapper.searchExtraJumpOut();
-       for (String extraJumpOutAddress:extraJumpOutAddressList)
-            classDataMapper.updateExtraJumpOut(extraJumpOutAddress);*/
     }
 
-    //此进程用于存储用户信息和补充跳出量(1小时存一次)--->禁止区域
+    //此进程用于存储用户信息和补充跳出量(3分钟存一次)--->禁止区域
     @Transactional
     @Async
-    @Scheduled(cron = "0 0 0/1 * * ?")
+    @Scheduled(cron = "* 0/3 * * * ?")
     public void saveDataThread2(){
+        //普通区域
+        Map<String,Object> subCustomerMap2 = redisUtil.hmget("visit");
+        System.out.println("到这里");
+        if(subCustomerMap2!=null){
+            System.out.println("进来开始存到visit表中");
+            //将visit表的缓存存到数据库中
+            for (Map.Entry<String, Object> subCustomerMap_1:subCustomerMap2.entrySet()) {
+                String subMac = (String) subCustomerMap_1.getKey();
+                Map<String,Object> subCustomerMap_2 = (Map<String, Object>) redisUtil.hget("visit", (String) subMac);
+                String mac = subCustomerMap_2.get("mac").toString();
+                System.out.println("mac值"+mac);
+                Timestamp first_in_time = new Timestamp((Long)subCustomerMap_2.get("in_time"));
+                Timestamp left_time =  new Timestamp((Long)subCustomerMap_2.get("left_time"));
+                Timestamp last_in_time =  new Timestamp((Long)subCustomerMap_2.get("last_in_time"));
+                Timestamp beat = new Timestamp((Long)subCustomerMap_2.get("beat"));
+                visitMapper.updateCustomer((String) subCustomerMap_2.get("address"),mac,(Integer)subCustomerMap_2.get("rssi"),first_in_time,left_time,beat,(Integer)subCustomerMap_2.get("inJudge"),(Integer)subCustomerMap_2.get("visited_times"),last_in_time,subCustomerMap_2.get("rt").toString());
+                System.out.println("执行成功！");
+            }
+            //删除缓存
+            //redisUtil.del("visit");
+            //visit表是否还在区域的值改为0
+            visitMapper.updateInjudge();
+        }
+
         //禁止区域
         Map<String,Object> subCustomerMap = redisUtil.hmget("stopvisit");
-        for (Map.Entry<String, Object> subCustomerMap_1:subCustomerMap.entrySet()) {
-            String subMac = (String) subCustomerMap_1.getKey();
-            Map<String,Object> subCustomerMap_2 = (Map<String, Object>) redisUtil.hget("stopvisit", (String) subMac);
-            String mac = subCustomerMap_2.get("mac").toString();
-            Timestamp first_in_time = new Timestamp((Long)subCustomerMap_2.get("in_time"));
-            Timestamp left_time =  new Timestamp((Long)subCustomerMap_2.get("left_time"));
-            Integer handleJudge =  (Integer)subCustomerMap_2.get("handleJudge");
-            Timestamp beat = new Timestamp((Long)subCustomerMap_2.get("beat"));
-            stopVisitMapper.updateCustomer(mac,(Integer)subCustomerMap_2.get("rssi"),first_in_time,left_time,beat,(Integer)subCustomerMap_2.get("inJudge"),(Integer)subCustomerMap_2.get("visited_times"),handleJudge,subCustomerMap_2.get("rt").toString());
+        if(subCustomerMap!=null){
+            for (Map.Entry<String, Object> subCustomerMap_1:subCustomerMap.entrySet()) {
+                String subMac = (String) subCustomerMap_1.getKey();
+                Map<String,Object> subCustomerMap_2 = (Map<String, Object>) redisUtil.hget("stopvisit", (String) subMac);
+                String mac = subCustomerMap_2.get("mac").toString();
+                Timestamp first_in_time = new Timestamp((Long)subCustomerMap_2.get("in_time"));
+                Timestamp left_time =  new Timestamp((Long)subCustomerMap_2.get("left_time"));
+                Integer handleJudge =  (Integer)subCustomerMap_2.get("handleJudge");
+                Timestamp beat = new Timestamp((Long)subCustomerMap_2.get("beat"));
+                stopVisitMapper.updateCustomer((String) subCustomerMap_2.get("address"),mac,(Integer)subCustomerMap_2.get("rssi"),first_in_time,left_time,beat,(Integer)subCustomerMap_2.get("inJudge"),(Integer)subCustomerMap_2.get("visited_times"),handleJudge,subCustomerMap_2.get("rt").toString());
+            }
+            //删除缓存
+           // redisUtil.del("stopvisit");
+            stopVisitMapper.updateInjudge();
         }
-        //删除缓存
-        redisUtil.del("stopvisit");
-
-        //添加下一个小时的区域时间=======================》数据表小时插入区域的关键
-        //dataUtil.insertClassData();
-        stopVisitMapper.updateInjudge();
-
-        //补充遗漏的跳出量
-/*        List<String> extraJumpOutAddressList = stopVisitMapper.searchExtraJumpOut();
-        for (String extraJumpOutAddress:extraJumpOutAddressList)
-            classDataMapper.updateExtraJumpOut(extraJumpOutAddress);*/
     }
 
     //此进程用于删除三个月前的数据

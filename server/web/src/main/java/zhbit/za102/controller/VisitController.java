@@ -5,11 +5,13 @@ import org.springframework.web.bind.annotation.*;
 import zhbit.za102.bean.Class;
 import zhbit.za102.bean.Msg;
 import zhbit.za102.bean.Visit;
+import zhbit.za102.service.ClassService;
 import zhbit.za102.service.VisitService;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 
 @RestController
@@ -86,5 +88,46 @@ public class VisitController {
             return new Msg("新增操作失败", 401);
         }
     }
+
+    @GetMapping("/sortVisit")
+    public Msg sortVisit(@RequestParam("dateTime")String dateTime,@RequestParam("address") String address)throws Exception {  //所有用户
+        try {
+            if(visitService.getSumVisit(dateTime, address)!=null){
+                return new Msg(visitService.getSumVisit(dateTime, address).getSum_visited_times());
+            }
+            else {
+                return new Msg(0);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Msg("查询失败", 401);
+        }
+    }
+
+    @GetMapping("/sortStoptime")
+    public Msg sortStoptime(@RequestParam("dateTime")String dateTime,@RequestParam("address") String address)throws Exception {  //所有用户
+        try {
+            if(visitService.getSumStoptime(dateTime, address)!=null){
+                return new Msg(visitService.getSumStoptime(dateTime, address).getStoptime());
+            }
+            else {
+                return new Msg(0);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Msg("查询失败", 401);
+        }
+    }
+
+    @GetMapping("/sortNow")
+    public Msg sortNow(@RequestParam("address") String address)throws Exception {  //所有用户
+        try {
+                return new Msg(visitService.getsortNow(address));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Msg("查询失败", 401);
+        }
+    }
+
 
 }

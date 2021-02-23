@@ -30,4 +30,6 @@ public interface MachineMapper {
     int updateByPrimaryKey(Machine record);
 
     void updateStatus(@Param("status")String status,@Param("machineid")String machineid);
+    Machine getmachineid(@Param("machineid")String machineid);
+
 }

@@ -15,18 +15,33 @@
     <result column="rssi" jdbcType="INTEGER" property="rssi" />
   </resultMap>
 
+  <!--获取区域实时人数-->
+  <select id="getsortNow" resultType="zhbit.za102.bean.NowCount" >
+    SELECT COUNT(*) AS nowcount FROM visit where ( inJudge = 1 ) and address = #{address}
+  </select>
+
+  <!--获取某区域某天的总访问次数-->
+  <select id="getSumVisit" resultType="zhbit.za102.bean.SumVisit" >
+    SELECT SUM(visited_times) AS sum_visited_times FROM visit where ( datediff ( in_time , #{dateTime} ) = 0 ) and address = #{address}
+  </select>
+
+  <!--获取某区域某天的停留时间-->
+  <select id="getSumStoptime" resultType="zhbit.za102.bean.SumStoptime" >
+    SELECT SUM(rt) AS Stoptime FROM visit where ( datediff ( in_time , #{dateTime} ) = 0 ) and address = #{address}
+  </select>
+
   <update id="updateCustomer">
         UPDATE
         visit
         SET
         rssi = #{rssi},in_time = #{first_in_time},left_time = #{latest_in_time},beat = #{beat},inJudge = #{inJudge},visited_times = #{visited_times},last_in_time = #{last_in_time},rt = #{rt}
         WHERE
-        mac = #{mac}
+        mac = #{mac} and address = #{address}
   </update>
 
 
   <select id="searchExtraJumpOut" resultType="java.lang.String">
-        select address from visit where (TIMESTAMPDIFF(MINUTE, left_time, CURRENT_TIMESTAMP))>5 and inJudge = 1;
+        select address from visit where (TIMESTAMPDIFF(MINUTE, left_time, CURRENT_TIMESTAMP))>5 and inJudge = 1
   </select>
 
   <update id="updateInjudge">
@@ -35,7 +50,16 @@
         SET
         inJudge = 0
         WHERE
-        (TIMESTAMPDIFF(MINUTE, left_time, CURRENT_TIMESTAMP))>5 and inJudge = 1;
+        (TIMESTAMPDIFF(MINUTE, left_time, CURRENT_TIMESTAMP))>5 and inJudge = 1
+  </update>
+
+  <update id="updateInjudge2">
+        UPDATE
+        visit
+        SET
+        inJudge = #{inJudge}
+        WHERE
+        mac = #{mac} and address = #{atAddress}
   </update>
 
   <delete id="deleteExpiredCustomer">

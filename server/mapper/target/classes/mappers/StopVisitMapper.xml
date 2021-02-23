@@ -21,12 +21,12 @@
         SET
         rssi = #{rssi},in_time = #{first_in_time},left_time = #{latest_in_time},beat = #{beat},inJudge = #{inJudge},visited_times = #{visited_times},handleJudge = #{handleJudge},rt = #{rt}
         WHERE
-        mac = #{mac}
+        mac = #{mac} and address = #{address}
   </update>
 
 
   <select id="searchExtraJumpOut" resultType="java.lang.String">
-        select address from stop_visit where (TIMESTAMPDIFF(MINUTE, left_time, CURRENT_TIMESTAMP))>5 and inJudge = 1;
+        select address from stop_visit where (TIMESTAMPDIFF(MINUTE, left_time, CURRENT_TIMESTAMP))>5 and inJudge = 1
   </select>
 
   <update id="updateInjudge">
@@ -35,7 +35,16 @@
         SET
         inJudge = 0
         WHERE
-        (TIMESTAMPDIFF(MINUTE, left_time, CURRENT_TIMESTAMP))>5 and inJudge = 1;
+        (TIMESTAMPDIFF(MINUTE, left_time, CURRENT_TIMESTAMP))>5 and inJudge = 1
+  </update>
+
+  <update id="updateInjudge2">
+        UPDATE
+        stop_visit
+        SET
+        inJudge = #{inJudge}
+        WHERE
+        mac = #{mac} and address = #{atAddress}
   </update>
 
   <delete id="deleteExpiredCustomer">

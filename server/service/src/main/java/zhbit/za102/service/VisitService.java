@@ -7,9 +7,7 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import zhbit.za102.bean.Msg;
-import zhbit.za102.bean.Visit;
-import zhbit.za102.bean.VisitExample;
+import zhbit.za102.bean.*;
 import zhbit.za102.dao.VisitMapper;
 
 import java.util.List;
@@ -54,9 +52,21 @@ public class VisitService {
         return new Msg(page);
     }
 
-    public List<Visit> findvisitByMac(String mac){
+    public List<Visit> findvisitByMac(String mac,String address){
         VisitExample example = new VisitExample();
-        example.createCriteria().andMacEqualTo(mac);
+        example.createCriteria().andMacEqualTo(mac).andAddressEqualTo(address);
         return visitMapper.selectByExample(example);
+    }
+
+    public SumVisit getSumVisit(String dateTime, String address) {
+        return visitMapper.getSumVisit(dateTime, address);
+    }
+
+    public SumStoptime getSumStoptime(String dateTime, String address) {
+        return visitMapper.getSumStoptime(dateTime, address);
+    }
+
+    public Integer getsortNow(String address) {
+        return visitMapper.getsortNow(address).getNowcount();
     }
 }

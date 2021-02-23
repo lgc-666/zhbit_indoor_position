@@ -48,4 +48,15 @@ public class DeviceService {
         PageInfo<Device> page = new PageInfo<>(us);
         return new Msg(page);
     }
+
+    public List<Device> listbyId(String id) {
+        DeviceExample example = new DeviceExample();
+        example.createCriteria().andIdEqualTo(id);
+        return deviceMapper.selectByExample(example);
+    }
+
+    @CacheEvict(value="Device",allEntries = true)
+    public void insertdevice(String deviceid,String devicetype,String devicevalue,String lasttime,String ip,Integer port,String gentime){
+        deviceMapper.insertdevice(deviceid,devicetype,devicevalue,lasttime,ip,port,gentime);
+    }
 }
