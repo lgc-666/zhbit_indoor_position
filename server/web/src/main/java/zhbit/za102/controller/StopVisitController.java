@@ -2,19 +2,24 @@ package zhbit.za102.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import zhbit.za102.bean.Device;
 import zhbit.za102.bean.Msg;
 import zhbit.za102.bean.StopVisit;
 import zhbit.za102.bean.Visit;
+import zhbit.za102.service.DeviceService;
 import zhbit.za102.service.StopVisitService;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.List;
 import java.util.TimeZone;
 
 @RestController
 public class StopVisitController {
     @Autowired
     StopVisitService stopvisitService;
+    @Autowired
+    DeviceService deviceService;
 
     @GetMapping("/listStopVisit")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
@@ -84,6 +89,27 @@ public class StopVisitController {
         } catch (Exception e) {
             e.printStackTrace();
             return new Msg("新增操作失败", 401);
+        }
+    }
+
+    @PutMapping("/doStopVisit")
+    public Msg doStopVisit(@RequestParam("stop_visit_id") Integer stop_visit_id,@RequestParam("address") String address) {
+        try {
+            System.out.println("已处理关闭报警器");
+            //更新禁止区域处理状态
+            StopVisit u= new StopVisit();
+            u.setHandlejudge(1);
+            stopvisitService.update(u);
+            //关闭禁止区域的报警器（报警器类型是5）
+            List<Device> devices = deviceService.listbyAdress(address);
+            DeviceController a = new DeviceController();
+            for(Device d:devices){
+                a.updateStatus("0",d.getId());
+            }
+            return new Msg("操作成功");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Msg("操作失败", 401);
         }
     }
 

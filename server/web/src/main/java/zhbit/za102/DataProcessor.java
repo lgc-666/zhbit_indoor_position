@@ -16,12 +16,18 @@ import org.springframework.transaction.annotation.Transactional;
 import redis.clients.jedis.Jedis;
 import zhbit.za102.Utils.DataUtil;
 import zhbit.za102.Utils.RedisUtils;
+import zhbit.za102.bean.ClassData;
+import zhbit.za102.bean.Device;
 import zhbit.za102.dao.*;
+import zhbit.za102.service.ClassDataService;
+import zhbit.za102.service.DeviceService;
+import zhbit.za102.service.LogrecordService;
 
 import javax.annotation.Resource;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 
@@ -91,6 +97,12 @@ public class DataProcessor implements CommandLineRunner {
     @Autowired
     LocationMapper locationMapper;
 
+    @Autowired
+    DeviceService deviceService;
+    @Autowired
+    LogrecordService logrecordService;
+    @Autowired
+    ClassDataService classDataService;
 
     @Override
     public void run(String... args) throws Exception {
@@ -578,6 +590,43 @@ public class DataProcessor implements CommandLineRunner {
         stopVisitMapper.deleteExpiredCustomer();
     }
 
+    //每3分钟读取一次区域的当前人数
+    @Async
+    @Scheduled(cron = "* 0/3 * * * ?")
+    public void changeDevice() throws Exception {
+           System.out.println("自动关灯");
+           List<ClassData> classData=classDataService.list();
+           //取最新的前4条处理
+           for(ClassData c:classData.subList(0, 4)){
+               System.out.println(c.getAdress()+"当前人数："+c.getClassNowNumber());
+               if(c.getClassNowNumber().toString()!="0"){  //该区域当前人数为0则关灯
+                   System.out.println("走这");
+                   List<Device> devices = deviceService.listbyAdressLight(c.getAdress());
+                   if(devices.size()!=0){
+                       for(Device d:devices){
+                           System.out.println("开始循环："+d.getId());
+                           SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+                           String dt = df.format(new Date());//获取当前系统时间并格式化
+                           logrecordService.addchange(d.getId(),"0",dt);
+                           deviceService.monitor(d.getId());
+                       }
+                   }
+               }
+               else{ //该区域当前人数非0则开灯
+                   List<Device> devices = deviceService.listbyAdressLight(c.getAdress());
+                   if(devices.size()!=0){
+                       for(Device d:devices){
+                           SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+                           String dt = df.format(new Date());//获取当前系统时间并格式化
+                           System.out.println("写入设备控制状态");
+                           logrecordService.addchange(d.getId(),"1",dt);
+                           deviceService.monitor(d.getId());
+                       }
+                   }
+               }
+           }
+           return;
+    }
 }
 
 

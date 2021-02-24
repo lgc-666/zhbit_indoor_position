@@ -4,13 +4,12 @@ import Jama.Matrix;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import zhbit.za102.bean.*;
 import zhbit.za102.bean.Class;
-import zhbit.za102.bean.Machine;
-import zhbit.za102.bean.StopVisit;
-import zhbit.za102.bean.Visit;
 import zhbit.za102.service.*;
 
 import javax.annotation.Resource;
+import java.net.SocketException;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -20,6 +19,10 @@ import java.util.*;
 public class DataUtil {
     @Resource
     RedisUtils redisUtil;
+    @Autowired
+    DeviceService deviceService;
+    @Autowired
+    LogrecordService logrecordService;
     @Autowired
     VisitService visitService;
     @Autowired
@@ -141,7 +144,7 @@ public class DataUtil {
         return true;
     }
     //向禁止区域表插数值
-    public boolean insertStopMac(String address, Integer inJudge, Integer visited_times, String mac, Integer rssi){
+    public boolean insertStopMac(String address, Integer inJudge, Integer visited_times, String mac, Integer rssi) throws Exception {
         //SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置日期格式
         //String dt = df.format(new Date());// 获取当前系统时间并格式化
         dt = new Timestamp(System.currentTimeMillis());
@@ -160,6 +163,18 @@ public class DataUtil {
         stopVisitService.add(u);
         //插入redis缓存
         cacheStopMac(address,inJudge,dt,dt,"0",visited_times,dt,0,mac,rssi);
+
+        //非法进入开启报警器（报警器类型是5）
+        System.out.println("非法进入开启报警器");
+        List<Device> devices = deviceService.listbyAdress(address);
+        if(devices.size()!=0){
+            for(Device d:devices){
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+                String dt = df.format(new Date());//获取当前系统时间并格式化
+                logrecordService.addchange(d.getId(),"1",dt);
+                deviceService.monitor(d.getId());
+            }
+        }
         return true;
     }
 
@@ -498,7 +513,5 @@ public class DataUtil {
     public Integer Stopjudge(String addressname){
         return classService.listbyaddress(addressname).get(0).getStopjudge();
     }
-
-    //人的位置记录
 
 }

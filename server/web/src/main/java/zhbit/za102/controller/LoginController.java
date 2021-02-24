@@ -110,7 +110,7 @@ public class LoginController {
 
     @RequestMapping("/login")
     public Msg unlogin(){
-        return new Msg("未登录", 401);
+        return new Msg("尚未登录或登录已过期，请重新登录", 401);
     }
 
     @RequestMapping("/unauthorized")
