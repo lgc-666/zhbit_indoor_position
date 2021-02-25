@@ -43,10 +43,24 @@ public class ClassService {
         return classMapper.selectByExample(example);
     }
 
+    public List<Class> list2(String staffdata) {
+        ClassExample example = new ClassExample();
+        example.createCriteria().andAdressEqualTo(staffdata);
+        example.setOrderByClause("classid desc");
+        return classMapper.selectByExample(example);
+    }
+
     @Cacheable(value="Class",key = "'list'+'-'+#start+'-'+#size")
     public Msg list(int start, int size) {
         PageHelper.startPage(start, size, "classid desc");
         List<Class> us = list();
+        PageInfo<Class> page = new PageInfo<>(us);
+        return new Msg(page);
+    }
+
+    public Msg listSearch(String staffdata,int start, int size) {
+        PageHelper.startPage(start, size, "classid desc");
+        List<Class> us = list2(staffdata);
         PageInfo<Class> page = new PageInfo<>(us);
         return new Msg(page);
     }

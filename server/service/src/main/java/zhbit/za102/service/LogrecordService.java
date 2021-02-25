@@ -40,10 +40,24 @@ public class LogrecordService {
         return logrecordMapper.selectByExample(example);
     }
 
+    public List<Logrecord> list2(String staffdata) {
+        LogrecordExample example = new LogrecordExample();
+        example.createCriteria().andIdEqualTo(staffdata);
+        example.setOrderByClause("logid desc");
+        return logrecordMapper.selectByExample(example);
+    }
+
     @Cacheable(value="Logrecord",key = "'list'+'-'+#start+'-'+#size")
     public Msg list(int start, int size) {
         PageHelper.startPage(start, size, "logid desc");
         List<Logrecord> us = list();
+        PageInfo<Logrecord> page = new PageInfo<>(us);
+        return new Msg(page);
+    }
+
+    public Msg listSearch(String staffdata,int start, int size) {
+        PageHelper.startPage(start, size, "logid desc");
+        List<Logrecord> us = list2(staffdata);
         PageInfo<Logrecord> page = new PageInfo<>(us);
         return new Msg(page);
     }

@@ -7,10 +7,12 @@ import zhbit.za102.bean.Msg;
 import zhbit.za102.bean.StopVisit;
 import zhbit.za102.bean.Visit;
 import zhbit.za102.service.DeviceService;
+import zhbit.za102.service.LogrecordService;
 import zhbit.za102.service.StopVisitService;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -20,12 +22,25 @@ public class StopVisitController {
     StopVisitService stopvisitService;
     @Autowired
     DeviceService deviceService;
+    @Autowired
+    LogrecordService logrecordService;
 
     @GetMapping("/listStopVisit")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
                     @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
         try {
             return stopvisitService.list(start, size);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Msg("查询失败", 401);
+        }
+    }
+
+    @GetMapping("/listStopVisitSearch")
+    public Msg listSearch(@RequestParam("staffdata") String staffdata,@RequestParam(value = "start",defaultValue = "1")int start,
+                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+        try {
+            return stopvisitService.listSearch(staffdata, start, size);
         } catch (Exception e) {
             e.printStackTrace();
             return new Msg("查询失败", 401);
@@ -99,12 +114,18 @@ public class StopVisitController {
             //更新禁止区域处理状态
             StopVisit u= new StopVisit();
             u.setHandlejudge(1);
+            u.setStopVisitId(stop_visit_id);
             stopvisitService.update(u);
             //关闭禁止区域的报警器（报警器类型是5）
             List<Device> devices = deviceService.listbyAdress(address);
-            DeviceController a = new DeviceController();
             for(Device d:devices){
-                a.updateStatus("0",d.getId());
+                System.out.println("设备的id："+d.getId());
+                System.out.println("设备操控");
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+                String dt = df.format(new Date());//获取当前系统时间并格式化
+                System.out.println("id-stataus-dt的值："+d.getId()+"-"+dt);
+                logrecordService.addchange(d.getId(),"0",dt);
+                deviceService.monitor(d.getId());
             }
             return new Msg("操作成功");
         } catch (Exception e) {

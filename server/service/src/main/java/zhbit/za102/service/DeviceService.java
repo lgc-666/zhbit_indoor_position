@@ -55,6 +55,13 @@ public class DeviceService {
         return deviceMapper.selectByExample(example);
     }
 
+    public List<Device> list2(String staffdata) {
+        DeviceExample example = new DeviceExample();
+        example.createCriteria().andIdEqualTo(staffdata);
+        example.setOrderByClause("deviceid desc");
+        return deviceMapper.selectByExample(example);
+    }
+
     @Cacheable(value="Device",key = "'list'+'-'+#start+'-'+#size")
     public Msg list(int start, int size) {
         PageHelper.startPage(start, size, "deviceid desc");
@@ -62,6 +69,14 @@ public class DeviceService {
         PageInfo<Device> page = new PageInfo<>(us);
         return new Msg(page);
     }
+
+    public Msg listSearch(String staffdata,int start, int size) {
+        PageHelper.startPage(start, size, "deviceid desc");
+        List<Device> us = list2(staffdata);
+        PageInfo<Device> page = new PageInfo<>(us);
+        return new Msg(page);
+    }
+
 
     public List<Device> listbyId(String id) {
         DeviceExample example = new DeviceExample();
@@ -121,7 +136,7 @@ public class DeviceService {
                 {
                     System.out.println("同一个设备id");
                     //判断是否有控制指令且控制指令不同于当前状态值
-                    if (kvalue.equals(devicevalue+""))   //若真实设备状态已经改变则退出该循环进行下一个
+                    if (kvalue.equals(devicevalue))   //若真实设备状态已经改变则退出该循环进行下一个
                     {
                         System.out.println("值比较1："+kvalue);
                         System.out.println("硬件值："+devicevalue);

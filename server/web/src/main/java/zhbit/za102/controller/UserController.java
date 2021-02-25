@@ -35,6 +35,17 @@ public class UserController {
         }
     }
 
+    @GetMapping("/listUserSearch")
+    public Msg listSearch(@RequestParam("staffdata") String staffdata,@RequestParam(value = "start",defaultValue = "1")int start,
+                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+        try {
+            return userService.listSearch(staffdata,start, size);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Msg("查询失败", 401);
+        }
+    }
+
     @GetMapping("/editUser")
     public Msg edit(@RequestParam("uid") Integer uid) {  //指定其中一个用户
         try {

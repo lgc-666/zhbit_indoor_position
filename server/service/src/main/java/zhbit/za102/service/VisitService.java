@@ -44,10 +44,24 @@ public class VisitService {
         return visitMapper.selectByExample(example);
     }
 
+    public List<Visit> list2(String staffdata) {
+        VisitExample example = new VisitExample();
+        example.createCriteria().andAddressEqualTo(staffdata);
+        example.setOrderByClause("visitid desc");
+        return visitMapper.selectByExample(example);
+    }
+
     @Cacheable(value="Visit",key = "'list'+'-'+#start+'-'+#size")
     public Msg list(int start, int size) {
         PageHelper.startPage(start, size, "visitid desc");
         List<Visit> us = list();
+        PageInfo<Visit> page = new PageInfo<>(us);
+        return new Msg(page);
+    }
+
+    public Msg listSearch(String staffdata,int start, int size) {
+        PageHelper.startPage(start, size, "visitid desc");
+        List<Visit> us = list2(staffdata);
         PageInfo<Visit> page = new PageInfo<>(us);
         return new Msg(page);
     }

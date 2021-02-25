@@ -29,6 +29,17 @@ public class MachineController {
         }
     }
 
+    @GetMapping("/listmachineSearch")
+    public Msg listSearch(@RequestParam("staffdata") String staffdata,@RequestParam(value = "start",defaultValue = "1")int start,
+                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {
+        try {
+            return machineService.listSearch(staffdata,start, size);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Msg("查询失败", 401);
+        }
+    }
+
     @DeleteMapping("/deletemachine")
     public Msg delete(@RequestParam("mid") Integer mid) {
         try {

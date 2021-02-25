@@ -28,6 +28,18 @@ public class LogrecordController {
         }
     }
 
+    @GetMapping("/listLogrecordSearch")
+    public Msg listSearch(@RequestParam("staffdata") String staffdata,@RequestParam(value = "start",defaultValue = "1")int start,
+                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+        try {
+            return logrecordService.listSearch(staffdata,start, size);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Msg("查询失败", 401);
+        }
+    }
+
+
     @DeleteMapping("/deleteLogrecord")
     public Msg delete(@RequestParam("logid") Integer logid) {
         try {

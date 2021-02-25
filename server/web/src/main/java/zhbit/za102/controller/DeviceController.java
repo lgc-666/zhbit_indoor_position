@@ -42,6 +42,17 @@ public class DeviceController {
         }
     }
 
+    @GetMapping("/listDeviceSearch")
+    public Msg listSearch(@RequestParam("staffdata") String staffdata,@RequestParam(value = "start",defaultValue = "1")int start,
+                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+        try {
+            return deviceService.listSearch(staffdata,start, size);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Msg("查询失败", 401);
+        }
+    }
+
     @DeleteMapping("/deleteDevice")
     public Msg delete(@RequestParam("deviceid") Integer deviceid) {
         try {
@@ -106,6 +117,7 @@ public class DeviceController {
             System.out.println("设备操控");
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
             String dt = df.format(new Date());//获取当前系统时间并格式化
+            System.out.println("id-stataus-dt的值："+id+"-"+status+"-"+dt);
             logrecordService.addchange(id,status,dt);
             deviceService.monitor(id);
         } catch (Exception e) {

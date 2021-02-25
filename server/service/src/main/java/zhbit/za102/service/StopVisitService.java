@@ -47,10 +47,24 @@ public class StopVisitService {
         return stopVisitMapper.selectByExample(example);
     }
 
+    public List<StopVisit> list2(String staffdata) {
+        StopVisitExample example = new StopVisitExample();
+        example.createCriteria().andAddressEqualTo(staffdata);
+        example.setOrderByClause("stop_visit_id desc");
+        return stopVisitMapper.selectByExample(example);
+    }
+
     @Cacheable(value="StopVisit",key = "'list'+'-'+#start+'-'+#size")
     public Msg list(int start, int size) {
         PageHelper.startPage(start, size, "stop_visit_id desc");
         List<StopVisit> us = list();
+        PageInfo<StopVisit> page = new PageInfo<>(us);
+        return new Msg(page);
+    }
+
+    public Msg listSearch(String staffdata,int start, int size) {
+        PageHelper.startPage(start, size, "stop_visit_id desc");
+        List<StopVisit> us = list2(staffdata);
         PageInfo<StopVisit> page = new PageInfo<>(us);
         return new Msg(page);
     }

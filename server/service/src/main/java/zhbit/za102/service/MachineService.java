@@ -46,6 +46,13 @@ public class MachineService {
         return machineMapper.selectByExample(example);
     }
 
+    public List<Machine> list2(String staffdata) {
+        MachineExample example = new MachineExample();
+        example.createCriteria().andMachineidEqualTo(staffdata);
+        example.setOrderByClause("mid desc");
+        return machineMapper.selectByExample(example);
+    }
+
     public List<Machine> listAll() {
         MachineExample example = new MachineExample();
         example.setOrderByClause("mid");
@@ -57,6 +64,14 @@ public class MachineService {
         //start是当前第几页，size是每页显示几条，设置id倒排序
         PageHelper.startPage(start, size, "mid desc");
         List<Machine> us = list();
+        PageInfo<Machine> page = new PageInfo<>(us);
+        return new Msg(page);
+    }
+
+    public Msg listSearch(String staffdata,int start, int size) {
+        //start是当前第几页，size是每页显示几条，设置id倒排序
+        PageHelper.startPage(start, size, "mid desc");
+        List<Machine> us = list2(staffdata);
         PageInfo<Machine> page = new PageInfo<>(us);
         return new Msg(page);
     }

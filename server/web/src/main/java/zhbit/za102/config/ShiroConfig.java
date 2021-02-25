@@ -85,6 +85,7 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/listUser","perms[listUser]");
         filterChainDefinitionMap.put("/updatePassword", "perms[updatePassword]");
         filterChainDefinitionMap.put("/updateUser", "perms[updateUser]");
+        filterChainDefinitionMap.put("/listUserSearch", "perms[listUserSearch]");
 
         filterChainDefinitionMap.put("/listRole", "perms[listRole]");
         filterChainDefinitionMap.put("/editRole", "perms[editRole]");
@@ -98,12 +99,14 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/deletemachine", "perms[deletemachine]");
         filterChainDefinitionMap.put("/updatemachine", "perms[updatemachine]");
         filterChainDefinitionMap.put("/addmachine", "perms[addmachine]");
+        filterChainDefinitionMap.put("/listmachineSearch", "perms[listmachineSearch]");
 
         filterChainDefinitionMap.put("/listClassNoPage", "perms[listClassNoPage]");
         filterChainDefinitionMap.put("/listClass", "perms[listClass]");
         filterChainDefinitionMap.put("/deleteClass", "perms[deleteClass]");
         filterChainDefinitionMap.put("/updateClass", "perms[updateClass]");
         filterChainDefinitionMap.put("/addClass", "perms[addClass]");
+        filterChainDefinitionMap.put("/listClassSearch", "perms[listClassSearch]");
 
         filterChainDefinitionMap.put("/getDBlocation", "perms[getDBlocation]");
         filterChainDefinitionMap.put("/getDBlocationNotRepeat", "perms[getDBlocationNotRepeat]");
@@ -113,21 +116,25 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/deleteVisit", "perms[deleteVisit]");
         filterChainDefinitionMap.put("/updateVisit", "perms[updateVisit]");
         filterChainDefinitionMap.put("/addVisit", "perms[addVisit]");
+        filterChainDefinitionMap.put("/listVisitSearch", "perms[listVisitSearch]");
 
         filterChainDefinitionMap.put("/listStopVisit", "perms[listStopVisit]");
         filterChainDefinitionMap.put("/deleteStopVisit", "perms[deleteStopVisit]");
         filterChainDefinitionMap.put("/updateStopVisit", "perms[updateStopVisit]");
         filterChainDefinitionMap.put("/addStopVisit", "perms[addStopVisit]");
+        filterChainDefinitionMap.put("/listStopVisitSearch", "perms[listStopVisitSearch]");
 
         filterChainDefinitionMap.put("/listDevice", "perms[listDevice]");
         filterChainDefinitionMap.put("/deleteDevice", "perms[deleteDevice]");
         filterChainDefinitionMap.put("/updateDevice", "perms[updateDevice]");
         filterChainDefinitionMap.put("/addDevice", "perms[addDevice]");
+        filterChainDefinitionMap.put("/listDeviceSearch", "perms[listDeviceSearch]");
 
         filterChainDefinitionMap.put("/listLogrecord", "perms[listLogrecord]");
         filterChainDefinitionMap.put("/deleteLogrecord", "perms[deleteLogrecord]");
         filterChainDefinitionMap.put("/updateLogrecord", "perms[updateLogrecord]");
         filterChainDefinitionMap.put("/addLogrecord", "perms[addLogrecord]");
+        filterChainDefinitionMap.put("/listLogrecordSearch", "perms[listLogrecordSearch]");
 
         filterChainDefinitionMap.put("/getSum", "perms[getSum]");
         filterChainDefinitionMap.put("/getMainData", "perms[getMainData]");
@@ -139,6 +146,7 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/sortNow", "perms[sortNow]");
 
         filterChainDefinitionMap.put("/updateStatus", "perms[updateStatus]");
+        filterChainDefinitionMap.put("/doStopVisit", "perms[doStopVisit]");
 
         filterChainDefinitionMap.put("/**", "url");
         shiroFilterFactoryBean.setFilters(customisedFilter);

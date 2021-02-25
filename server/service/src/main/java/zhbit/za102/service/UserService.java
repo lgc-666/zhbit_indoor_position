@@ -70,6 +70,13 @@ public class UserService {
         return userMapper.selectByExample(example);
     }
 
+    public List<User> list2(String staffdata) {
+        UserExample example = new UserExample();
+        example.createCriteria().andUsernameEqualTo(staffdata);
+        example.setOrderByClause("uid desc");
+        return userMapper.selectByExample(example);
+    }
+
     @Cacheable(value="User",key = "'list'+'-'+#start+'-'+#size")
     public Msg list(int start, int size) {
         PageHelper.startPage(start, size, "uid desc");
@@ -81,6 +88,17 @@ public class UserService {
         }
         PageInfo<User> page = new PageInfo<>(us);
         //user_roles.put("listUser", us);
+        return new Msg(page);
+    }
+
+    public Msg listSearch(String staffdata, int start, int size) {
+        PageHelper.startPage(start, size, "uid desc");
+        List<User> us = list2(staffdata);
+        for (User user : us) {
+            List<Role> roles = roleService.listRoles(user);
+            user.setRole(roles);
+        }
+        PageInfo<User> page = new PageInfo<>(us);
         return new Msg(page);
     }
 }

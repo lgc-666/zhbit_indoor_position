@@ -11,9 +11,9 @@
 
   <insert id="addchange">
         insert into logrecord01
-        (id,changevalue,gentime)
+        (id,cardid,changevalue,gentime)
         values
-        (#{id},#{changevalue},#{gentime})
+        (#{id},"0",#{changevalue},#{gentime})
   </insert>
 
   <select id="findAllLogrecord" resultType="java.lang.String" >
