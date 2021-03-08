@@ -13,21 +13,22 @@
     <result column="last_in_time" jdbcType="TIMESTAMP" property="lastInTime" />
     <result column="mac" jdbcType="VARCHAR" property="mac" />
     <result column="rssi" jdbcType="INTEGER" property="rssi" />
+    <result column="indoorname" jdbcType="VARCHAR" property="indoorname" />
   </resultMap>
 
   <!--获取区域实时人数-->
   <select id="getsortNow" resultType="zhbit.za102.bean.NowCount" >
-    SELECT COUNT(*) AS nowcount FROM visit where ( inJudge = 1 ) and address = #{address}
+    SELECT COUNT(*) AS nowcount FROM visit where ( inJudge = 1 ) and address = #{address} and indoorname = #{indoorname}
   </select>
 
   <!--获取某区域某天的总访问次数-->
   <select id="getSumVisit" resultType="zhbit.za102.bean.SumVisit" >
-    SELECT SUM(visited_times) AS sum_visited_times FROM visit where ( datediff ( in_time , #{dateTime} ) = 0 ) and address = #{address}
+    SELECT SUM(visited_times) AS sum_visited_times FROM visit where ( datediff ( in_time , #{dateTime} ) = 0 ) and address = #{address} and indoorname = #{indoorname}
   </select>
 
   <!--获取某区域某天的停留时间-->
   <select id="getSumStoptime" resultType="zhbit.za102.bean.SumStoptime" >
-    SELECT SUM(rt) AS Stoptime FROM visit where ( datediff ( in_time , #{dateTime} ) = 0 ) and address = #{address}
+    SELECT SUM(rt) AS Stoptime FROM visit where ( datediff ( in_time , #{dateTime} ) = 0 ) and address = #{address} and indoorname = #{indoorname}
   </select>
 
   <update id="updateCustomer">
@@ -36,7 +37,7 @@
         SET
         rssi = #{rssi},in_time = #{first_in_time},left_time = #{latest_in_time},beat = #{beat},inJudge = #{inJudge},visited_times = #{visited_times},last_in_time = #{last_in_time},rt = #{rt}
         WHERE
-        mac = #{mac} and address = #{address}
+        mac = #{mac} and address = #{address} and indoorname = #{indoorname}
   </update>
 
 
@@ -59,12 +60,13 @@
         SET
         inJudge = #{inJudge}
         WHERE
-        mac = #{mac} and address = #{atAddress}
+        mac = #{mac} and address = #{atAddress} and indoorname = #{indoorname}
   </update>
 
   <delete id="deleteExpiredCustomer">
         delete from visit where beat &lt; DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
   </delete>
+
 
 
   <sql id="Example_Where_Clause">
@@ -127,7 +129,7 @@
   </sql>
   <sql id="Base_Column_List">
     visitid, address, inJudge, in_time, left_time, rt, visited_times, beat, last_in_time, 
-    mac, rssi
+    mac, rssi, indoorname
   </sql>
   <select id="selectByExample" parameterType="zhbit.za102.bean.VisitExample" resultMap="BaseResultMap">
     select
@@ -164,11 +166,11 @@
     insert into visit (address, inJudge, in_time, 
       left_time, rt, visited_times, 
       beat, last_in_time, mac, 
-      rssi)
+      rssi, indoorname)
     values (#{address,jdbcType=VARCHAR}, #{injudge,jdbcType=INTEGER}, #{inTime,jdbcType=TIMESTAMP}, 
       #{leftTime,jdbcType=TIMESTAMP}, #{rt,jdbcType=VARCHAR}, #{visitedTimes,jdbcType=INTEGER}, 
       #{beat,jdbcType=TIMESTAMP}, #{lastInTime,jdbcType=TIMESTAMP}, #{mac,jdbcType=VARCHAR}, 
-      #{rssi,jdbcType=INTEGER})
+      #{rssi,jdbcType=INTEGER}, #{indoorname,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" keyColumn="visitid" keyProperty="visitid" parameterType="zhbit.za102.bean.Visit" useGeneratedKeys="true">
     insert into visit
@@ -203,6 +205,9 @@
       <if test="rssi != null">
         rssi,
       </if>
+      <if test="indoorname != null">
+        indoorname,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="address != null">
@@ -234,6 +239,9 @@
       </if>
       <if test="rssi != null">
         #{rssi,jdbcType=INTEGER},
+      </if>
+      <if test="indoorname != null">
+        #{indoorname,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -279,6 +287,9 @@
       <if test="record.rssi != null">
         rssi = #{record.rssi,jdbcType=INTEGER},
       </if>
+      <if test="record.indoorname != null">
+        indoorname = #{record.indoorname,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -296,7 +307,8 @@
       beat = #{record.beat,jdbcType=TIMESTAMP},
       last_in_time = #{record.lastInTime,jdbcType=TIMESTAMP},
       mac = #{record.mac,jdbcType=VARCHAR},
-      rssi = #{record.rssi,jdbcType=INTEGER}
+      rssi = #{record.rssi,jdbcType=INTEGER},
+      indoorname = #{record.indoorname,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -334,6 +346,9 @@
       <if test="rssi != null">
         rssi = #{rssi,jdbcType=INTEGER},
       </if>
+      <if test="indoorname != null">
+        indoorname = #{indoorname,jdbcType=VARCHAR},
+      </if>
     </set>
     where visitid = #{visitid,jdbcType=INTEGER}
   </update>
@@ -348,7 +363,8 @@
       beat = #{beat,jdbcType=TIMESTAMP},
       last_in_time = #{lastInTime,jdbcType=TIMESTAMP},
       mac = #{mac,jdbcType=VARCHAR},
-      rssi = #{rssi,jdbcType=INTEGER}
+      rssi = #{rssi,jdbcType=INTEGER},
+      indoorname = #{indoorname,jdbcType=VARCHAR}
     where visitid = #{visitid,jdbcType=INTEGER}
   </update>
 </mapper>

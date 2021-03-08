@@ -24,6 +24,8 @@ public class ClassData implements Serializable {
 
     private Integer hours;
 
+    private String indoorname;
+
     public Integer getId() {
         return id;
     }
@@ -102,5 +104,13 @@ public class ClassData implements Serializable {
 
     public void setHours(Integer hours) {
         this.hours = hours;
+    }
+
+    public String getIndoorname() {
+        return indoorname;
+    }
+
+    public void setIndoorname(String indoorname) {
+        this.indoorname = indoorname == null ? null : indoorname.trim();
     }
 }

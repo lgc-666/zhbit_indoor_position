@@ -13,23 +13,26 @@
     <result column="owner" jdbcType="VARCHAR" property="owner" />
     <result column="ip" jdbcType="VARCHAR" property="ip" />
     <result column="port" jdbcType="INTEGER" property="port" />
+    <result column="indoorname" jdbcType="VARCHAR" property="indoorname" />
   </resultMap>
 
   <update id="updatebyid" >
         UPDATE
         device01
         SET
-        devicetype = #{devicetype},devicevalue = #{devicevalue},lasttime = #{lasttime},ip= #{ip},port= #{port},gentime= #{gentime}
+        devicetype = #{devicetype},devicevalue = #{devicevalue},lasttime = #{lasttime},ip= #{ip},port= #{port},gentime= #{gentime},indoorname= #{indoorname}
         WHERE
         id=#{deviceid}
  </update>
 
   <insert id="insertdevice">
         insert into device01
-        (id,devicetype,devicevalue,lasttime,ip,port,gentime)
+        (id,devicetype,devicevalue,lasttime,ip,port,gentime,indoorname)
         values
-        (#{deviceid},#{devicetype},#{devicevalue},#{lasttime},#{ip},#{port},#{gentime})
+        (#{deviceid},#{devicetype},#{devicevalue},#{lasttime},#{ip},#{port},#{gentime},#{indoorname})
   </insert>
+
+
 
   <sql id="Example_Where_Clause">
     <where>
@@ -91,7 +94,7 @@
   </sql>
   <sql id="Base_Column_List">
     deviceid, devicename, id, devicetype, devicevalue, location, lasttime, gentime, owner, 
-    ip, port
+    ip, port, indoorname
   </sql>
   <select id="selectByExample" parameterType="zhbit.za102.bean.DeviceExample" resultMap="BaseResultMap">
     select
@@ -128,11 +131,11 @@
     insert into device01 (devicename, id, devicetype, 
       devicevalue, location, lasttime, 
       gentime, owner, ip, 
-      port)
+      port, indoorname)
     values (#{devicename,jdbcType=VARCHAR}, #{id,jdbcType=VARCHAR}, #{devicetype,jdbcType=VARCHAR}, 
       #{devicevalue,jdbcType=VARCHAR}, #{location,jdbcType=VARCHAR}, #{lasttime,jdbcType=VARCHAR}, 
       #{gentime,jdbcType=VARCHAR}, #{owner,jdbcType=VARCHAR}, #{ip,jdbcType=VARCHAR}, 
-      #{port,jdbcType=INTEGER})
+      #{port,jdbcType=INTEGER}, #{indoorname,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" keyColumn="deviceid" keyProperty="deviceid" parameterType="zhbit.za102.bean.Device" useGeneratedKeys="true">
     insert into device01
@@ -167,6 +170,9 @@
       <if test="port != null">
         port,
       </if>
+      <if test="indoorname != null">
+        indoorname,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="devicename != null">
@@ -198,6 +204,9 @@
       </if>
       <if test="port != null">
         #{port,jdbcType=INTEGER},
+      </if>
+      <if test="indoorname != null">
+        #{indoorname,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -243,6 +252,9 @@
       <if test="record.port != null">
         port = #{record.port,jdbcType=INTEGER},
       </if>
+      <if test="record.indoorname != null">
+        indoorname = #{record.indoorname,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -260,7 +272,8 @@
       gentime = #{record.gentime,jdbcType=VARCHAR},
       owner = #{record.owner,jdbcType=VARCHAR},
       ip = #{record.ip,jdbcType=VARCHAR},
-      port = #{record.port,jdbcType=INTEGER}
+      port = #{record.port,jdbcType=INTEGER},
+      indoorname = #{record.indoorname,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -298,6 +311,9 @@
       <if test="port != null">
         port = #{port,jdbcType=INTEGER},
       </if>
+      <if test="indoorname != null">
+        indoorname = #{indoorname,jdbcType=VARCHAR},
+      </if>
     </set>
     where deviceid = #{deviceid,jdbcType=INTEGER}
   </update>
@@ -312,7 +328,8 @@
       gentime = #{gentime,jdbcType=VARCHAR},
       owner = #{owner,jdbcType=VARCHAR},
       ip = #{ip,jdbcType=VARCHAR},
-      port = #{port,jdbcType=INTEGER}
+      port = #{port,jdbcType=INTEGER},
+      indoorname = #{indoorname,jdbcType=VARCHAR}
     where deviceid = #{deviceid,jdbcType=INTEGER}
   </update>
 </mapper>

@@ -51,6 +51,7 @@ public class DataProcessor implements CommandLineRunner {
     private String idM = "^[1-9]\\d*$";
 
     //数据处理
+    private String indoorname;
     private String machineId;
     private String mac;
     private Integer rssi;
@@ -77,6 +78,8 @@ public class DataProcessor implements CommandLineRunner {
 
     private String lastmachineid="";
     private String nowmachineid="";
+    private String lastindoorname="";
+    private String nowindoorname="";
     private String lastx;
     private String lasty;
     private String nowx;
@@ -128,6 +131,7 @@ public class DataProcessor implements CommandLineRunner {
                         jsonObject = JSON.parseObject(strReceive);
                         if (jsonObject != null) {
                             //把数据初步分析出来
+                            indoorname = jsonObject.getString("indoorname").trim();
                             machineId = jsonObject.getString("Id");
                             data = jsonObject.getString("Data");
                             System.out.println("machineId："+machineId);
@@ -141,7 +145,7 @@ public class DataProcessor implements CommandLineRunner {
                                 continue;
                             }
 
-                            dataUtil.get(machineId);
+                            dataUtil.get(machineId);  //测试用
                             //如果设备在后台管理系统没有被添加,则不接受处理
                             if (machineId.matches(idM) && dataUtil.getmachineAP(machineId) != null) {
                                 System.out.println("更新设备beat");
@@ -150,6 +154,7 @@ public class DataProcessor implements CommandLineRunner {
                                 dataSize = jsonArray.size();/**分析各个mac的数据，拆分data值**/
 
                                 nowmachineid=machineId;
+                                nowindoorname=indoorname;//确保在一个地图
 
                                 System.out.println("nowmachineid："+nowmachineid);
                                 System.out.println("lastmachineid："+lastmachineid);
@@ -172,7 +177,7 @@ public class DataProcessor implements CommandLineRunner {
                                         continue;
                                     }
 
-                                      if(APcount >3 && redisUtil.hmget(mac).size() > 3) { //该mac至少有4个rssi了 ,AP>3或缓存中的键值对>3
+                                      if(APcount >3 && redisUtil.hmget(mac).size() > 3 && nowindoorname.equals(lastindoorname)) { //该mac至少有4个rssi了 ,AP>3或缓存中的键值对>3，且在同一个地图
                                         /**开始计算（x,y）**/
                                         //取mac缓存中rssi信号最强的前4个计算
                                         System.out.println("开始计算（x,y）");
@@ -218,11 +223,11 @@ public class DataProcessor implements CommandLineRunner {
                                         System.out.println("人的位置坐标"+macpoint);
 
                                         //根据区域x、y的范围值，判断在哪个区域
-                                        atAddress = dataUtil.judgeClass(macpoint.get("macx"), macpoint.get("macy"));
+                                        atAddress = dataUtil.judgeClass(macpoint.get("macx"), macpoint.get("macy"),indoorname);
                                         System.out.println("人所在区域："+atAddress);
 
                                         //根据区域名判断是否为禁止区域
-                                        StopJudege = dataUtil.Stopjudge(atAddress);
+                                        StopJudege = dataUtil.Stopjudge(atAddress,indoorname);
                                         System.out.println("是否为禁止区域："+StopJudege);
                                         //当前时间戳
                                         latest_time = new Timestamp(System.currentTimeMillis());
@@ -237,24 +242,24 @@ public class DataProcessor implements CommandLineRunner {
                                                 System.out.println("在同一位置上没有移动");
                                             }
                                             else {
-                                                locationMapper.insertLocation(mac,atAddress,nowx,nowy);
+                                                locationMapper.insertLocation(mac,atAddress,nowx,nowy,indoorname);
                                             }
                                         }
                                         else {
-                                            locationMapper.insertLocation(mac,atAddress,nowx,nowy);
+                                            locationMapper.insertLocation(mac,atAddress,nowx,nowy,indoorname);
                                         }
 
 
                                         /**先判断是否存在，注意：同一个区域的同一个mac用更新方式，否则插入**/
                                         //不存在的情况
-                                        if (!dataUtil.checkExist(mac, atAddress)) {
+                                        if (!dataUtil.checkExist(mac, atAddress,indoorname)) {
                                             //新客人
                                             System.out.println("新客人");
                                             if (StopJudege == 0) {
                                                 //加入新客人
-                                                dataUtil.insertMac(atAddress, 1, 1, mac, rssi);
+                                                dataUtil.insertMac(atAddress, 1, 1, mac, rssi,indoorname);
                                             } else {
-                                                dataUtil.insertStopMac(atAddress, 1, 1, mac, rssi);
+                                                dataUtil.insertStopMac(atAddress, 1, 1, mac, rssi,indoorname);
                                             }
                                             //加入缓存
                                             new_student++;
@@ -266,7 +271,7 @@ public class DataProcessor implements CommandLineRunner {
                                             System.out.println("跑这里去");
                                             //更新的是人所在区域的mac信息
                                             if (StopJudege == 0) { //所在区域为普通区域
-                                                macMap = dataUtil.getMacMap(mac, atAddress);  //获取缓存进行处理，没有就从数据库中同步进来
+                                                macMap = dataUtil.getMacMap(mac, atAddress,indoorname);  //获取缓存进行处理，没有就从数据库中同步进来
                                                 if(macMap!=null){
                                                     Iterator<Map.Entry<String, Object>> entries = macMap.entrySet().iterator();
                                                     while(entries.hasNext()){
@@ -293,12 +298,12 @@ public class DataProcessor implements CommandLineRunner {
                                                     macMap.put("inJudge", 1);
                                                     macMap.put("rssi", rssi);
                                                     //更新cache信息
-                                                    dataUtil.refreshMacCache(mac, atAddress,macMap);
-                                                    visitMapper.updateInjudge2(1,mac,atAddress);
+                                                    dataUtil.refreshMacCache(mac, atAddress,macMap,indoorname);
+                                                    visitMapper.updateInjudge2(1,mac,atAddress,indoorname);
                                                 }
 
                                             } else { //所在区域为禁区
-                                                macMap = dataUtil.getStopMacMap(mac, atAddress);
+                                                macMap = dataUtil.getStopMacMap(mac, atAddress,indoorname);
                                                 timeCount = new Long((latest_time.getTime() - (Long) macMap.get("beat")) / (60 * 1000)).intValue();
                                                 if (timeCount >= 5&&(Integer) macMap.get("inJudge") == 0) {
                                                     macMap.put("in_time", latest_time);
@@ -313,8 +318,8 @@ public class DataProcessor implements CommandLineRunner {
                                                 macMap.put("inJudge", 1);
                                                 macMap.put("rssi", rssi);
                                                 //更新cache信息
-                                                dataUtil.refreshStopMacCache(mac,atAddress, macMap);
-                                                stopVisitMapper.updateInjudge2(1,mac,atAddress);
+                                                dataUtil.refreshStopMacCache(mac,atAddress, macMap,indoorname);
+                                                stopVisitMapper.updateInjudge2(1,mac,atAddress,indoorname);
                                                 System.out.println("更新cache信息完成！");
                                             }
                                         }
@@ -327,7 +332,7 @@ public class DataProcessor implements CommandLineRunner {
                                 //这里更新
                                 if(atAddress!=null){
                                     if (new_student != 0 || in_class_number != 0 || hour_in_class_number != 0 ) {
-                                        classDataMapper.updateClassData(atAddress, new_student, in_class_number, hour_in_class_number);//倒序排序更新最新的那条
+                                        classDataMapper.updateClassData(atAddress, new_student, in_class_number, hour_in_class_number,indoorname);//倒序排序更新最新的那条
                                     }
                                 }
 
@@ -337,6 +342,8 @@ public class DataProcessor implements CommandLineRunner {
                                 hour_in_class_number = 0;
 
                                 lastmachineid=nowmachineid;
+                                lastindoorname=nowindoorname;
+
                                 if(APcount>3){
                                     APcount = 0; //记得将数据清0，否则会一直累加
                                 }
@@ -372,6 +379,7 @@ public class DataProcessor implements CommandLineRunner {
         //跳出量
         Integer jumpOut_customer = 0;
         String subAddress = null;
+        String subIndoorname = null;
 
         Map<String, Object> countExtraMap = new HashMap<>();
         Map<String, Integer> subCountExtraMap;
@@ -379,8 +387,8 @@ public class DataProcessor implements CommandLineRunner {
         if (subCustomerMap!=null){
             latest_time = new Timestamp(System.currentTimeMillis());
             //普通区域
-            for (Map.Entry<String, Object> subCustomerMap_1 : subCustomerMap.entrySet()) {
-                Object subMac = subCustomerMap_1.getKey();
+            for (Map.Entry<String, Object> subCustomerMap_1 : subCustomerMap.entrySet()) {  //subCustomerMap为多个键值对
+                Object subMac = subCustomerMap_1.getKey();  //获得键mac+'-'+address+'-'+indoorname
                 Map<String, Object> subCustomerMap_2 = (Map) redisUtil.hget("visit", (String) subMac);
                 //时间间隔
                 Integer countTime = new Long((latest_time.getTime() - (Long) subCustomerMap_2.get("beat")) / (60 * 1000)).intValue();
@@ -392,13 +400,14 @@ public class DataProcessor implements CommandLineRunner {
                     jumpOut_customer = 1;  //跳出量+1
                     //}
                     subCustomerMap_2.put("inJudge", 0); //不在区域内
-                    visitMapper.updateInjudge2(0,subMac.toString(),subCustomerMap_2.get("address").toString());
+                    visitMapper.updateInjudge2(0,subCustomerMap_2.get("mac").toString(),subCustomerMap_2.get("address").toString(),subCustomerMap_2.get("indoorname").toString());
                     subCustomerMap_2.put("rt", stayTime.toString()); //停留时间
                 }
                 else if (countTime < 5 && (Integer) subCustomerMap_2.get("inJudge") == 1) { //人在室内
                     dynamic_customer = 1; //现存人数+1
                 }
                 subAddress = (String)subCustomerMap_2.get("address");
+                subIndoorname = (String)subCustomerMap_2.get("indoorname");
                 if (jumpOut_customer!=0||dynamic_customer!=0){
                     if (countExtraMap.get(subAddress)==null){
                         subCountExtraMap = new HashMap<>();
@@ -423,12 +432,12 @@ public class DataProcessor implements CommandLineRunner {
                 subAddress = subCustomerMap_1.getKey();
                 subCountExtraMap = (Map)subCustomerMap_1.getValue();
                 //查询当前小时进店量
-                subHour_customer = classDataMapper.searchNowHour_in_customer_number(subAddress);
+                subHour_customer = classDataMapper.searchNowHour_in_customer_number(subAddress,subIndoorname);
                 //如果当前店面人流量大于小时进店量, 则小时客流量等于当前店面人流量（场景：人进去后一直在店内不出去，那么到了下个小时，小时进店量清0，当前人流就比它大）
                 if (subCountExtraMap.get("dynamic_customer")>subHour_customer)
                     subHour_customer = subCountExtraMap.get("dynamic_customer");
                 if (subHour_customer!=0||subCountExtraMap.get("dynamic_customer")!=0||subCountExtraMap.get("jumpOut_customer")!=0)
-                    classDataMapper.updateDataThread(subAddress,subCountExtraMap.get("dynamic_customer"),subCountExtraMap.get("jumpOut_customer"),subHour_customer);
+                    classDataMapper.updateDataThread(subAddress,subCountExtraMap.get("dynamic_customer"),subCountExtraMap.get("jumpOut_customer"),subHour_customer,subIndoorname);
             }
         }
 
@@ -462,6 +471,7 @@ public class DataProcessor implements CommandLineRunner {
         //跳出量
         Integer jumpOut_customer2 = 0;
         String subAddress2 = null;
+        String subIndoorname2 = null;
 
         Map<String, Object> countExtraMap2 = new HashMap<>();
         Map<String, Integer> subCountExtraMap2;
@@ -483,12 +493,14 @@ public class DataProcessor implements CommandLineRunner {
                     //}
                     subCustomerMap_2.put("inJudge", 0); //不在区域内
                     subCustomerMap_2.put("rt", stayTime.toString()); //停留时间
-                    visitMapper.updateInjudge2(0,subMac.toString(),subCustomerMap_2.get("address").toString());
+                    visitMapper.updateInjudge2(0,subCustomerMap_2.get("mac").toString(),subCustomerMap_2.get("address").toString(),subCustomerMap_2.get("indoorname").toString());
                 }
                 else if (countTime < 5 && (Integer) subCustomerMap_2.get("inJudge") == 1) { //人在室内
                     dynamic_customer2 = 1; //现存人数+1
                 }
                 subAddress2 = (String)subCustomerMap_2.get("address");
+                subIndoorname2 = (String)subCustomerMap_2.get("indoorname");
+
                 if (jumpOut_customer2!=0||dynamic_customer2!=0){
                     if (countExtraMap2.get(subAddress2)==null){
                         subCountExtraMap2 = new HashMap<>();
@@ -513,12 +525,12 @@ public class DataProcessor implements CommandLineRunner {
                 subAddress2 = subCustomerMap_1.getKey();
                 subCountExtraMap2 = (Map)subCustomerMap_1.getValue();
                 //查询当前小时进店量
-                subHour_customer2 = classDataMapper.searchNowHour_in_customer_number(subAddress2);
+                subHour_customer2 = classDataMapper.searchNowHour_in_customer_number(subAddress2,subIndoorname2);
                 //如果当前店面人流量大于小时进店量, 则小时客流量等于当前店面人流量
                 if (subCountExtraMap2.get("dynamic_customer")>subHour_customer2)
                     subHour_customer2 = subCountExtraMap2.get("dynamic_customer");
                 if (subHour_customer2!=0||subCountExtraMap2.get("dynamic_customer")!=0||subCountExtraMap2.get("jumpOut_customer")!=0)
-                    classDataMapper.updateDataThread(subAddress2,subCountExtraMap2.get("dynamic_customer"),subCountExtraMap2.get("jumpOut_customer"),subHour_customer2);
+                    classDataMapper.updateDataThread(subAddress2,subCountExtraMap2.get("dynamic_customer"),subCountExtraMap2.get("jumpOut_customer"),subHour_customer2,subIndoorname2);
             }
         }
     }
@@ -552,7 +564,7 @@ public class DataProcessor implements CommandLineRunner {
                 Timestamp left_time =  new Timestamp((Long)subCustomerMap_2.get("left_time"));
                 Timestamp last_in_time =  new Timestamp((Long)subCustomerMap_2.get("last_in_time"));
                 Timestamp beat = new Timestamp((Long)subCustomerMap_2.get("beat"));
-                visitMapper.updateCustomer((String) subCustomerMap_2.get("address"),mac,(Integer)subCustomerMap_2.get("rssi"),first_in_time,left_time,beat,(Integer)subCustomerMap_2.get("inJudge"),(Integer)subCustomerMap_2.get("visited_times"),last_in_time,subCustomerMap_2.get("rt").toString());
+                visitMapper.updateCustomer((String) subCustomerMap_2.get("address"),mac,(Integer)subCustomerMap_2.get("rssi"),first_in_time,left_time,beat,(Integer)subCustomerMap_2.get("inJudge"),(Integer)subCustomerMap_2.get("visited_times"),last_in_time,subCustomerMap_2.get("rt").toString(),(String) subCustomerMap_2.get("indoorname"));
                 System.out.println("执行成功！");
             }
             //删除缓存
@@ -572,7 +584,7 @@ public class DataProcessor implements CommandLineRunner {
                 Timestamp left_time =  new Timestamp((Long)subCustomerMap_2.get("left_time"));
                 Integer handleJudge =  (Integer)subCustomerMap_2.get("handleJudge");
                 Timestamp beat = new Timestamp((Long)subCustomerMap_2.get("beat"));
-                stopVisitMapper.updateCustomer((String) subCustomerMap_2.get("address"),mac,(Integer)subCustomerMap_2.get("rssi"),first_in_time,left_time,beat,(Integer)subCustomerMap_2.get("inJudge"),(Integer)subCustomerMap_2.get("visited_times"),handleJudge,subCustomerMap_2.get("rt").toString());
+                stopVisitMapper.updateCustomer((String) subCustomerMap_2.get("address"),mac,(Integer)subCustomerMap_2.get("rssi"),first_in_time,left_time,beat,(Integer)subCustomerMap_2.get("inJudge"),(Integer)subCustomerMap_2.get("visited_times"),handleJudge,subCustomerMap_2.get("rt").toString(),subCustomerMap_2.get("indoorname").toString());
             }
             //删除缓存
            // redisUtil.del("stopvisit");
@@ -601,25 +613,25 @@ public class DataProcessor implements CommandLineRunner {
                System.out.println(c.getAdress()+"当前人数："+c.getClassNowNumber());
                if(c.getClassNowNumber().toString()!="0"){  //该区域当前人数为0则关灯
                    System.out.println("走这");
-                   List<Device> devices = deviceService.listbyAdressLight(c.getAdress());
+                   List<Device> devices = deviceService.listbyAdressLight(c.getAdress(),c.getIndoorname());
                    if(devices.size()!=0){
                        for(Device d:devices){
                            System.out.println("开始循环："+d.getId());
                            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
                            String dt = df.format(new Date());//获取当前系统时间并格式化
-                           logrecordService.addchange(d.getId(),"0",dt);
+                           logrecordService.addchange(d.getId(),"0",dt,d.getIndoorname());
                            deviceService.monitor(d.getId());
                        }
                    }
                }
                else{ //该区域当前人数非0则开灯
-                   List<Device> devices = deviceService.listbyAdressLight(c.getAdress());
+                   List<Device> devices = deviceService.listbyAdressLight(c.getAdress(),c.getIndoorname());
                    if(devices.size()!=0){
                        for(Device d:devices){
                            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
                            String dt = df.format(new Date());//获取当前系统时间并格式化
                            System.out.println("写入设备控制状态");
-                           logrecordService.addchange(d.getId(),"1",dt);
+                           logrecordService.addchange(d.getId(),"1",dt,d.getIndoorname());
                            deviceService.monitor(d.getId());
                        }
                    }

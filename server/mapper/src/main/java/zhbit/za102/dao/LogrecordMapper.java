@@ -31,5 +31,5 @@ public interface LogrecordMapper {
 
     List<String> findAllLogrecord();
 
-    void addchange(@Param("id")String id,@Param("changevalue")String changevalue,@Param("gentime")String gentime);
+    void addchange(@Param("id")String id,@Param("changevalue")String changevalue,@Param("gentime")String gentime,@Param("indoorname") String indoorname);
 }

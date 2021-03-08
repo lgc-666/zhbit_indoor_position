@@ -25,6 +25,8 @@ public class Device implements Serializable {
 
     private Integer port;
 
+    private String indoorname;
+
     public Integer getDeviceid() {
         return deviceid;
     }
@@ -111,5 +113,13 @@ public class Device implements Serializable {
 
     public void setPort(Integer port) {
         this.port = port;
+    }
+
+    public String getIndoorname() {
+        return indoorname;
+    }
+
+    public void setIndoorname(String indoorname) {
+        this.indoorname = indoorname == null ? null : indoorname.trim();
     }
 }

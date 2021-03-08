@@ -26,6 +26,8 @@ public class Visit implements Serializable {
 
     private Integer rssi;
 
+    private String indoorname;
+
     public Integer getVisitid() {
         return visitid;
     }
@@ -112,5 +114,13 @@ public class Visit implements Serializable {
 
     public void setRssi(Integer rssi) {
         this.rssi = rssi;
+    }
+
+    public String getIndoorname() {
+        return indoorname;
+    }
+
+    public void setIndoorname(String indoorname) {
+        this.indoorname = indoorname == null ? null : indoorname.trim();
     }
 }

@@ -16,6 +16,8 @@ public class Location implements Serializable {
 
     private Date beat;
 
+    private String indoorname;
+
     public Integer getLocationid() {
         return locationid;
     }
@@ -62,5 +64,13 @@ public class Location implements Serializable {
 
     public void setBeat(Date beat) {
         this.beat = beat;
+    }
+
+    public String getIndoorname() {
+        return indoorname;
+    }
+
+    public void setIndoorname(String indoorname) {
+        this.indoorname = indoorname == null ? null : indoorname.trim();
     }
 }

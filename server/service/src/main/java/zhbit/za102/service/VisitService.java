@@ -72,15 +72,15 @@ public class VisitService {
         return visitMapper.selectByExample(example);
     }
 
-    public SumVisit getSumVisit(String dateTime, String address) {
-        return visitMapper.getSumVisit(dateTime, address);
+    public SumVisit getSumVisit(String dateTime, String address,String indoorname) {
+        return visitMapper.getSumVisit(dateTime, address,indoorname);
     }
 
-    public SumStoptime getSumStoptime(String dateTime, String address) {
-        return visitMapper.getSumStoptime(dateTime, address);
+    public SumStoptime getSumStoptime(String dateTime, String address,String indoorname) {
+        return visitMapper.getSumStoptime(dateTime, address, indoorname);
     }
 
-    public Integer getsortNow(String address) {
-        return visitMapper.getsortNow(address).getNowcount();
+    public Integer getsortNow(String address,String indoorname) {
+        return visitMapper.getsortNow(address,indoorname).getNowcount();
     }
 }

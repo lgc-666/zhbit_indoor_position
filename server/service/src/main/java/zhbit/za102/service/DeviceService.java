@@ -78,15 +78,15 @@ public class DeviceService {
     }
 
 
-    public List<Device> listbyId(String id) {
+    public List<Device> listbyId(String id,String indoorname) {
         DeviceExample example = new DeviceExample();
-        example.createCriteria().andIdEqualTo(id);
+        example.createCriteria().andIdEqualTo(id).andIndoornameEqualTo(indoorname);
         return deviceMapper.selectByExample(example);
     }
 
     @CacheEvict(value="Device",allEntries = true)
-    public void insertdevice(String deviceid,String devicetype,String devicevalue,String lasttime,String ip,Integer port,String gentime){
-        deviceMapper.insertdevice(deviceid,devicetype,devicevalue,lasttime,ip,port,gentime);
+    public void insertdevice(String deviceid,String devicetype,String devicevalue,String lasttime,String ip,Integer port,String gentime,String indoorname){
+        deviceMapper.insertdevice(deviceid,devicetype,devicevalue,lasttime,ip,port,gentime,indoorname);
     }
 
     public List<Device> listbyAdress(String address) {
@@ -95,9 +95,9 @@ public class DeviceService {
         return deviceMapper.selectByExample(example);
     }
 
-    public List<Device> listbyAdressLight(String address) {
+    public List<Device> listbyAdressLight(String address,String indoorname) {
         DeviceExample example = new DeviceExample();
-        example.createCriteria().andLocationEqualTo(address).andDevicetypeEqualTo("6");  //类型6为灯
+        example.createCriteria().andLocationEqualTo(address).andDevicetypeEqualTo("6").andIndoornameEqualTo(indoorname);  //类型6为灯
         return deviceMapper.selectByExample(example);
     }
 
@@ -126,6 +126,7 @@ public class DeviceService {
                 String deviceid =mess1.split(",")[0];
                 String devicetype = mess1.split (",")[1];
                 String devicevalue = mess1.split (",")[2].trim();
+                String indoorname = mess1.split (",")[3].trim();  //新加的地图数据
 //                if(logrecordService.listbyId(id1).size()!=0){
                 String kvalue=logrecordService.listbyId(id1).get(0).getChangevalue(); //根据id从logrecord01表获取对应设备的状态值
 //                }
@@ -141,7 +142,7 @@ public class DeviceService {
                         System.out.println("值比较1："+kvalue);
                         System.out.println("硬件值："+devicevalue);
                         System.out.println("退出");
-                        check(deviceid,devicetype,devicevalue,ip,port);
+                        check(deviceid,devicetype,devicevalue,ip,port,indoorname);
                         break;
                     }
                     else{
@@ -162,7 +163,7 @@ public class DeviceService {
                              /** 3、使用send发送 */
                              try {
                                  ds.send(dp2);
-                                 check(deviceid,devicetype,devicevalue,ip,port);
+                                 check(deviceid,devicetype,devicevalue,ip,port,indoorname);
                              } catch (IOException e) {
                                  System.out.println("发送失败： ");
                                  e.printStackTrace();
@@ -177,13 +178,13 @@ public class DeviceService {
     }
 
     //改数据库中设备状态
-    public void check(String deviceid,String devicetype,String devicevalue,String ip,Integer port){
+    public void check(String deviceid,String devicetype,String devicevalue,String ip,Integer port,String indoorname){
         Date t=new Date();
         System.out.println(t);
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
         String dt = df.format(t);//获取当前系统时间并格式化
         // 查询发过来的设备列表中在数据库中有没有，如无则存入，如有则更新   "select * from device01 where id='" + id1 + "'"
-        if(listbyId(deviceid).size()!=0)
+        if(listbyId(deviceid,indoorname).size()!=0)
         {
             //更新device01表
             String gentime = df.format(new Date());// 获取当前系统时间并格式化
@@ -198,7 +199,8 @@ public class DeviceService {
             d1.setIp(ip);
             d1.setPort(port);
             d1.setGentime(gentime);
-            d1.setDeviceid(deviceService.listbyId(deviceid).get(0).getDeviceid());
+            d1.setDeviceid(deviceService.listbyId(deviceid,indoorname).get(0).getDeviceid());
+            d1.setIndoorname(indoorname);
             deviceService.update(d1);
             //deviceService.updatebyid(deviceid,devicetype,devicevalue,lasttime,ip,port,gentime);
         }
@@ -208,7 +210,7 @@ public class DeviceService {
             long now1 = System.currentTimeMillis();//获取当前时间戳
             now1=now1/1000;
             String lasttime=String.valueOf(now1);   //long型转string型
-            deviceService.insertdevice(deviceid,devicetype,devicevalue,lasttime,ip,port,gentime);    //插入设备信息
+            deviceService.insertdevice(deviceid,devicetype,devicevalue,lasttime,ip,port,gentime,indoorname);    //插入设备信息
         }
     }
 }

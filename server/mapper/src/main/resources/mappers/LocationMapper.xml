@@ -8,7 +8,36 @@
     <result column="x" jdbcType="VARCHAR" property="x" />
     <result column="y" jdbcType="VARCHAR" property="y" />
     <result column="beat" jdbcType="TIMESTAMP" property="beat" />
+    <result column="indoorname" jdbcType="VARCHAR" property="indoorname" />
   </resultMap>
+
+  <!--搜索该mac的位置x-->
+  <select id="searchLocationX" resultType="java.lang.String" >
+    select x from location where locationid in (select locationid from (select * from location where mac=#{mac} ORDER BY beat desc LIMIT 1)as t)
+  </select>
+  <!--搜索该mac的位置y-->
+  <select id="searchLocationY" resultType="java.lang.String" >
+    select y from location where locationid in (select locationid from (select * from location where mac=#{mac} ORDER BY beat desc LIMIT 1)as t)
+  </select>
+  <!--插入人的坐标位置-->
+  <insert id="insertLocation">
+        insert into location
+        (mac,adress,x,y,beat,indoorname)
+        values
+        (#{mac},#{address},#{x},#{y},CURRENT_TIMESTAMP,#{indoorname})
+  </insert>
+
+  <select id="searchLocationMac" resultType="java.lang.String" >
+    select DISTINCT mac from location
+  </select>
+
+  <select id="searchLocationleatMac" resultType="zhbit.za102.bean.Location" >
+    select * from location where mac=#{mac} ORDER BY beat desc LIMIT 1
+  </select>
+
+
+
+
   <sql id="Example_Where_Clause">
     <where>
       <foreach collection="oredCriteria" item="criteria" separator="or">
@@ -68,7 +97,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    locationid, mac, adress, x, y, beat
+    locationid, mac, adress, x, y, beat, indoorname
   </sql>
   <select id="selectByExample" parameterType="zhbit.za102.bean.LocationExample" resultMap="BaseResultMap">
     select
@@ -103,9 +132,11 @@
   </delete>
   <insert id="insert" keyColumn="locationid" keyProperty="locationid" parameterType="zhbit.za102.bean.Location" useGeneratedKeys="true">
     insert into location (mac, adress, x, 
-      y, beat)
+      y, beat, indoorname
+      )
     values (#{mac,jdbcType=VARCHAR}, #{adress,jdbcType=VARCHAR}, #{x,jdbcType=VARCHAR}, 
-      #{y,jdbcType=VARCHAR}, #{beat,jdbcType=TIMESTAMP})
+      #{y,jdbcType=VARCHAR}, #{beat,jdbcType=TIMESTAMP}, #{indoorname,jdbcType=VARCHAR}
+      )
   </insert>
   <insert id="insertSelective" keyColumn="locationid" keyProperty="locationid" parameterType="zhbit.za102.bean.Location" useGeneratedKeys="true">
     insert into location
@@ -125,6 +156,9 @@
       <if test="beat != null">
         beat,
       </if>
+      <if test="indoorname != null">
+        indoorname,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="mac != null">
@@ -141,6 +175,9 @@
       </if>
       <if test="beat != null">
         #{beat,jdbcType=TIMESTAMP},
+      </if>
+      <if test="indoorname != null">
+        #{indoorname,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -171,6 +208,9 @@
       <if test="record.beat != null">
         beat = #{record.beat,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.indoorname != null">
+        indoorname = #{record.indoorname,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -183,7 +223,8 @@
       adress = #{record.adress,jdbcType=VARCHAR},
       x = #{record.x,jdbcType=VARCHAR},
       y = #{record.y,jdbcType=VARCHAR},
-      beat = #{record.beat,jdbcType=TIMESTAMP}
+      beat = #{record.beat,jdbcType=TIMESTAMP},
+      indoorname = #{record.indoorname,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -206,6 +247,9 @@
       <if test="beat != null">
         beat = #{beat,jdbcType=TIMESTAMP},
       </if>
+      <if test="indoorname != null">
+        indoorname = #{indoorname,jdbcType=VARCHAR},
+      </if>
     </set>
     where locationid = #{locationid,jdbcType=INTEGER}
   </update>
@@ -215,32 +259,8 @@
       adress = #{adress,jdbcType=VARCHAR},
       x = #{x,jdbcType=VARCHAR},
       y = #{y,jdbcType=VARCHAR},
-      beat = #{beat,jdbcType=TIMESTAMP}
+      beat = #{beat,jdbcType=TIMESTAMP},
+      indoorname = #{indoorname,jdbcType=VARCHAR}
     where locationid = #{locationid,jdbcType=INTEGER}
   </update>
-
-
-  <!--搜索该mac的位置x-->
-  <select id="searchLocationX" resultType="java.lang.String" >
-    select x from location where locationid in (select locationid from (select * from location where mac=#{mac} ORDER BY beat desc LIMIT 1)as t)
-  </select>
-  <!--搜索该mac的位置y-->
-  <select id="searchLocationY" resultType="java.lang.String" >
-    select y from location where locationid in (select locationid from (select * from location where mac=#{mac} ORDER BY beat desc LIMIT 1)as t)
-  </select>
-  <!--插入人的坐标位置-->
-  <insert id="insertLocation">
-        insert into location
-        (mac,adress,x,y,beat)
-        values
-        (#{mac},#{address},#{x},#{y},CURRENT_TIMESTAMP)
-  </insert>
-
-  <select id="searchLocationMac" resultType="java.lang.String" >
-    select DISTINCT mac from location
-  </select>
-
-  <select id="searchLocationleatMac" resultType="zhbit.za102.bean.Location" >
-    select * from location where mac=#{mac} ORDER BY beat desc LIMIT 1
-  </select>
 </mapper>

@@ -1,9 +1,10 @@
 package zhbit.za102.bean;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LogrecordExample {
+public class LogrecordExample implements Serializable {
     protected String orderByClause;
 
     protected boolean distinct;
@@ -63,7 +64,7 @@ public class LogrecordExample {
         distinct = false;
     }
 
-    protected abstract static class GeneratedCriteria {
+    protected abstract static class GeneratedCriteria implements Serializable{
         protected List<Criterion> criteria;
 
         protected GeneratedCriteria() {
@@ -443,16 +444,86 @@ public class LogrecordExample {
             addCriterion("gentime not between", value1, value2, "gentime");
             return (Criteria) this;
         }
+
+        public Criteria andIndoornameIsNull() {
+            addCriterion("indoorname is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndoornameIsNotNull() {
+            addCriterion("indoorname is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndoornameEqualTo(String value) {
+            addCriterion("indoorname =", value, "indoorname");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndoornameNotEqualTo(String value) {
+            addCriterion("indoorname <>", value, "indoorname");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndoornameGreaterThan(String value) {
+            addCriterion("indoorname >", value, "indoorname");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndoornameGreaterThanOrEqualTo(String value) {
+            addCriterion("indoorname >=", value, "indoorname");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndoornameLessThan(String value) {
+            addCriterion("indoorname <", value, "indoorname");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndoornameLessThanOrEqualTo(String value) {
+            addCriterion("indoorname <=", value, "indoorname");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndoornameLike(String value) {
+            addCriterion("indoorname like", value, "indoorname");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndoornameNotLike(String value) {
+            addCriterion("indoorname not like", value, "indoorname");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndoornameIn(List<String> values) {
+            addCriterion("indoorname in", values, "indoorname");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndoornameNotIn(List<String> values) {
+            addCriterion("indoorname not in", values, "indoorname");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndoornameBetween(String value1, String value2) {
+            addCriterion("indoorname between", value1, value2, "indoorname");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndoornameNotBetween(String value1, String value2) {
+            addCriterion("indoorname not between", value1, value2, "indoorname");
+            return (Criteria) this;
+        }
     }
 
-    public static class Criteria extends GeneratedCriteria {
+    public static class Criteria extends GeneratedCriteria implements Serializable{
 
         protected Criteria() {
             super();
         }
     }
 
-    public static class Criterion {
+    public static class Criterion implements Serializable{
         private String condition;
 
         private Object value;

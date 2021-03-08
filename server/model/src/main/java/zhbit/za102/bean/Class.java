@@ -17,6 +17,8 @@ public class Class implements Serializable {
 
     private Integer stopjudge;
 
+    private String indoorname;
+
     public Integer getClassid() {
         return classid;
     }
@@ -71,5 +73,13 @@ public class Class implements Serializable {
 
     public void setStopjudge(Integer stopjudge) {
         this.stopjudge = stopjudge;
+    }
+
+    public String getIndoorname() {
+        return indoorname;
+    }
+
+    public void setIndoorname(String indoorname) {
+        this.indoorname = indoorname == null ? null : indoorname.trim();
     }
 }

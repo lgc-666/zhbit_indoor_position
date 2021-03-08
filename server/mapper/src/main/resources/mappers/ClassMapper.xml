@@ -9,10 +9,15 @@
     <result column="x2" jdbcType="VARCHAR" property="x2" />
     <result column="y2" jdbcType="VARCHAR" property="y2" />
     <result column="stopJudge" jdbcType="INTEGER" property="stopjudge" />
+    <result column="indoorname" jdbcType="VARCHAR" property="indoorname" />
   </resultMap>
 
   <select id="findAllClass" resultType="java.lang.String" >
     select adress from class
+  </select>
+
+  <select id="findAllClassBean" resultType="zhbit.za102.bean.Class" >
+    select * from class
   </select>
 
   <sql id="Example_Where_Clause">
@@ -74,7 +79,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    classid, adress, x1, y1, x2, y2, stopJudge
+    classid, adress, x1, y1, x2, y2, stopJudge, indoorname
   </sql>
   <select id="selectByExample" parameterType="zhbit.za102.bean.ClassExample" resultMap="BaseResultMap">
     select
@@ -109,9 +114,11 @@
   </delete>
   <insert id="insert" keyColumn="classid" keyProperty="classid" parameterType="zhbit.za102.bean.Class" useGeneratedKeys="true">
     insert into class (adress, x1, y1, 
-      x2, y2, stopJudge)
+      x2, y2, stopJudge, 
+      indoorname)
     values (#{adress,jdbcType=VARCHAR}, #{x1,jdbcType=VARCHAR}, #{y1,jdbcType=VARCHAR}, 
-      #{x2,jdbcType=VARCHAR}, #{y2,jdbcType=VARCHAR}, #{stopjudge,jdbcType=INTEGER})
+      #{x2,jdbcType=VARCHAR}, #{y2,jdbcType=VARCHAR}, #{stopjudge,jdbcType=INTEGER}, 
+      #{indoorname,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" keyColumn="classid" keyProperty="classid" parameterType="zhbit.za102.bean.Class" useGeneratedKeys="true">
     insert into class
@@ -134,6 +141,9 @@
       <if test="stopjudge != null">
         stopJudge,
       </if>
+      <if test="indoorname != null">
+        indoorname,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="adress != null">
@@ -153,6 +163,9 @@
       </if>
       <if test="stopjudge != null">
         #{stopjudge,jdbcType=INTEGER},
+      </if>
+      <if test="indoorname != null">
+        #{indoorname,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -186,6 +199,9 @@
       <if test="record.stopjudge != null">
         stopJudge = #{record.stopjudge,jdbcType=INTEGER},
       </if>
+      <if test="record.indoorname != null">
+        indoorname = #{record.indoorname,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -199,7 +215,8 @@
       y1 = #{record.y1,jdbcType=VARCHAR},
       x2 = #{record.x2,jdbcType=VARCHAR},
       y2 = #{record.y2,jdbcType=VARCHAR},
-      stopJudge = #{record.stopjudge,jdbcType=INTEGER}
+      stopJudge = #{record.stopjudge,jdbcType=INTEGER},
+      indoorname = #{record.indoorname,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -225,6 +242,9 @@
       <if test="stopjudge != null">
         stopJudge = #{stopjudge,jdbcType=INTEGER},
       </if>
+      <if test="indoorname != null">
+        indoorname = #{indoorname,jdbcType=VARCHAR},
+      </if>
     </set>
     where classid = #{classid,jdbcType=INTEGER}
   </update>
@@ -235,7 +255,8 @@
       y1 = #{y1,jdbcType=VARCHAR},
       x2 = #{x2,jdbcType=VARCHAR},
       y2 = #{y2,jdbcType=VARCHAR},
-      stopJudge = #{stopjudge,jdbcType=INTEGER}
+      stopJudge = #{stopjudge,jdbcType=INTEGER},
+      indoorname = #{indoorname,jdbcType=VARCHAR}
     where classid = #{classid,jdbcType=INTEGER}
   </update>
 </mapper>

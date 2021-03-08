@@ -13,6 +13,7 @@
     <result column="handleJudge" jdbcType="INTEGER" property="handlejudge" />
     <result column="mac" jdbcType="VARCHAR" property="mac" />
     <result column="rssi" jdbcType="INTEGER" property="rssi" />
+    <result column="indoorname" jdbcType="VARCHAR" property="indoorname" />
   </resultMap>
 
   <update id="updateCustomer">
@@ -21,9 +22,8 @@
         SET
         rssi = #{rssi},in_time = #{first_in_time},left_time = #{latest_in_time},beat = #{beat},inJudge = #{inJudge},visited_times = #{visited_times},handleJudge = #{handleJudge},rt = #{rt}
         WHERE
-        mac = #{mac} and address = #{address}
+        mac = #{mac} and address = #{address} and indoorname = #{indoorname}
   </update>
-
 
   <select id="searchExtraJumpOut" resultType="java.lang.String">
         select address from stop_visit where (TIMESTAMPDIFF(MINUTE, left_time, CURRENT_TIMESTAMP))>5 and inJudge = 1
@@ -44,12 +44,14 @@
         SET
         inJudge = #{inJudge}
         WHERE
-        mac = #{mac} and address = #{atAddress}
+        mac = #{mac} and address = #{atAddress} and indoorname = #{indoorname}
   </update>
 
   <delete id="deleteExpiredCustomer">
         delete from stop_visit where beat &lt; DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
   </delete>
+
+
 
   <sql id="Example_Where_Clause">
     <where>
@@ -111,7 +113,7 @@
   </sql>
   <sql id="Base_Column_List">
     stop_visit_id, address, inJudge, in_time, left_time, rt, visited_times, beat, handleJudge, 
-    mac, rssi
+    mac, rssi, indoorname
   </sql>
   <select id="selectByExample" parameterType="zhbit.za102.bean.StopVisitExample" resultMap="BaseResultMap">
     select
@@ -148,11 +150,11 @@
     insert into stop_visit (address, inJudge, in_time, 
       left_time, rt, visited_times, 
       beat, handleJudge, mac, 
-      rssi)
+      rssi, indoorname)
     values (#{address,jdbcType=VARCHAR}, #{injudge,jdbcType=INTEGER}, #{inTime,jdbcType=TIMESTAMP}, 
       #{leftTime,jdbcType=TIMESTAMP}, #{rt,jdbcType=VARCHAR}, #{visitedTimes,jdbcType=INTEGER}, 
       #{beat,jdbcType=TIMESTAMP}, #{handlejudge,jdbcType=INTEGER}, #{mac,jdbcType=VARCHAR}, 
-      #{rssi,jdbcType=INTEGER})
+      #{rssi,jdbcType=INTEGER}, #{indoorname,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" keyColumn="stop_visit_id" keyProperty="stopVisitId" parameterType="zhbit.za102.bean.StopVisit" useGeneratedKeys="true">
     insert into stop_visit
@@ -187,6 +189,9 @@
       <if test="rssi != null">
         rssi,
       </if>
+      <if test="indoorname != null">
+        indoorname,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="address != null">
@@ -218,6 +223,9 @@
       </if>
       <if test="rssi != null">
         #{rssi,jdbcType=INTEGER},
+      </if>
+      <if test="indoorname != null">
+        #{indoorname,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -263,6 +271,9 @@
       <if test="record.rssi != null">
         rssi = #{record.rssi,jdbcType=INTEGER},
       </if>
+      <if test="record.indoorname != null">
+        indoorname = #{record.indoorname,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -280,7 +291,8 @@
       beat = #{record.beat,jdbcType=TIMESTAMP},
       handleJudge = #{record.handlejudge,jdbcType=INTEGER},
       mac = #{record.mac,jdbcType=VARCHAR},
-      rssi = #{record.rssi,jdbcType=INTEGER}
+      rssi = #{record.rssi,jdbcType=INTEGER},
+      indoorname = #{record.indoorname,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -318,6 +330,9 @@
       <if test="rssi != null">
         rssi = #{rssi,jdbcType=INTEGER},
       </if>
+      <if test="indoorname != null">
+        indoorname = #{indoorname,jdbcType=VARCHAR},
+      </if>
     </set>
     where stop_visit_id = #{stopVisitId,jdbcType=INTEGER}
   </update>
@@ -332,7 +347,8 @@
       beat = #{beat,jdbcType=TIMESTAMP},
       handleJudge = #{handlejudge,jdbcType=INTEGER},
       mac = #{mac,jdbcType=VARCHAR},
-      rssi = #{rssi,jdbcType=INTEGER}
+      rssi = #{rssi,jdbcType=INTEGER},
+      indoorname = #{indoorname,jdbcType=VARCHAR}
     where stop_visit_id = #{stopVisitId,jdbcType=INTEGER}
   </update>
 </mapper>

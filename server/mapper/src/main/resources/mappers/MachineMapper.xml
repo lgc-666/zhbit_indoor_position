@@ -10,11 +10,23 @@
     <result column="beat" jdbcType="TIMESTAMP" property="beat" />
     <result column="x" jdbcType="VARCHAR" property="x" />
     <result column="y" jdbcType="VARCHAR" property="y" />
+    <result column="indoorname" jdbcType="VARCHAR" property="indoorname" />
   </resultMap>
 
+  <update id="updateStatus">
+        UPDATE
+        machine
+        SET
+        status = #{status},
+        beat = NOW()
+        WHERE
+        machineid = #{machineid};
+  </update>
+
   <select id="getmachineid" resultType="zhbit.za102.bean.Machine" >
-    select * from machine where machineid = #{machineid}
+    select * from machine where machineid = #{machineid} and indoorname = #{indoorname}
   </select>
+
 
   <sql id="Example_Where_Clause">
     <where>
@@ -75,7 +87,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    mid, machineid, adress, status, leastRssi, beat, x, y
+    mid, machineid, adress, status, leastRssi, beat, x, y, indoorname
   </sql>
   <select id="selectByExample" parameterType="zhbit.za102.bean.MachineExample" resultMap="BaseResultMap">
     select
@@ -111,10 +123,10 @@
   <insert id="insert" keyColumn="mid" keyProperty="mid" parameterType="zhbit.za102.bean.Machine" useGeneratedKeys="true">
     insert into machine (machineid, adress, status, 
       leastRssi, beat, x, 
-      y)
+      y, indoorname)
     values (#{machineid,jdbcType=VARCHAR}, #{adress,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, 
       #{leastrssi,jdbcType=INTEGER}, #{beat,jdbcType=TIMESTAMP}, #{x,jdbcType=VARCHAR}, 
-      #{y,jdbcType=VARCHAR})
+      #{y,jdbcType=VARCHAR}, #{indoorname,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" keyColumn="mid" keyProperty="mid" parameterType="zhbit.za102.bean.Machine" useGeneratedKeys="true">
     insert into machine
@@ -140,6 +152,9 @@
       <if test="y != null">
         y,
       </if>
+      <if test="indoorname != null">
+        indoorname,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="machineid != null">
@@ -162,6 +177,9 @@
       </if>
       <if test="y != null">
         #{y,jdbcType=VARCHAR},
+      </if>
+      <if test="indoorname != null">
+        #{indoorname,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -198,6 +216,9 @@
       <if test="record.y != null">
         y = #{record.y,jdbcType=VARCHAR},
       </if>
+      <if test="record.indoorname != null">
+        indoorname = #{record.indoorname,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -212,7 +233,8 @@
       leastRssi = #{record.leastrssi,jdbcType=INTEGER},
       beat = #{record.beat,jdbcType=TIMESTAMP},
       x = #{record.x,jdbcType=VARCHAR},
-      y = #{record.y,jdbcType=VARCHAR}
+      y = #{record.y,jdbcType=VARCHAR},
+      indoorname = #{record.indoorname,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -241,6 +263,9 @@
       <if test="y != null">
         y = #{y,jdbcType=VARCHAR},
       </if>
+      <if test="indoorname != null">
+        indoorname = #{indoorname,jdbcType=VARCHAR},
+      </if>
     </set>
     where mid = #{mid,jdbcType=INTEGER}
   </update>
@@ -252,17 +277,8 @@
       leastRssi = #{leastrssi,jdbcType=INTEGER},
       beat = #{beat,jdbcType=TIMESTAMP},
       x = #{x,jdbcType=VARCHAR},
-      y = #{y,jdbcType=VARCHAR}
+      y = #{y,jdbcType=VARCHAR},
+      indoorname = #{indoorname,jdbcType=VARCHAR}
     where mid = #{mid,jdbcType=INTEGER}
-  </update>
-
-  <update id="updateStatus">
-        UPDATE
-        machine
-        SET
-        status = #{status},
-        beat = NOW()
-        WHERE
-        machineid = #{machineid};
   </update>
 </mapper>

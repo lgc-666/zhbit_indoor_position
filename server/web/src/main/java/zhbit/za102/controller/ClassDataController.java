@@ -19,14 +19,14 @@ public class ClassDataController {
 
 
     @GetMapping("/getSum")
-    public Msg getSum()throws Exception {
+    public Msg getSum(@RequestParam("indoorname")String indoorname)throws Exception {
         try {
             //获得系统时间
             Date date1=new Date(System.currentTimeMillis());
             //格式化时间格式
             SimpleDateFormat simp02=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
             String dateTime =simp02.format(date1);
-            SumData sum = classDataService.getSum(dateTime).get(0);
+            SumData sum = classDataService.getSum(dateTime,indoorname).get(0);
             return new Msg(sum);
         } catch (Exception e) {
             e.printStackTrace();
@@ -47,13 +47,13 @@ public class ClassDataController {
     }
 
     @GetMapping("/getMainData")
-    public Msg getMainData(@RequestParam("address")String address, @RequestParam("dateTime")String dateTime)throws Exception {  //所有用户
+    public Msg getMainData(@RequestParam("address")String address, @RequestParam("dateTime")String dateTime,@RequestParam("indoorname")String indoorname)throws Exception {  //所有用户
         try {
             Integer in_class_number = 0;
             Integer jmpOut = 0;
             Integer new_student = 0;
             Integer class_now_number  = 0;
-            List<ClassData> shop_dataList = classDataService.getMainData(address,dateTime);
+            List<ClassData> shop_dataList = classDataService.getMainData(address,dateTime,indoorname);
             if (shop_dataList.size()==0)
                 return new Msg("请选中展示区域", 401);
             System.out.println("第一行："+shop_dataList.get(0).getClassNowNumber());
@@ -76,9 +76,9 @@ public class ClassDataController {
     }
 
     @GetMapping("/getCustomerPerHour")
-    public Msg getCustomerPerHour(@RequestParam("address")String address, @RequestParam("dateTime")String dateTime)throws Exception {  //所有用户
+    public Msg getCustomerPerHour(@RequestParam("address")String address, @RequestParam("dateTime")String dateTime,@RequestParam("indoorname")String indoorname)throws Exception {  //所有用户
         try {
-            List<CustomerPerHour> CustomerPerHourList = classDataService.getCustomerPerHour(address, dateTime);
+            List<CustomerPerHour> CustomerPerHourList = classDataService.getCustomerPerHour(address, dateTime, indoorname);
             Collections.reverse(CustomerPerHourList);
             return new Msg(CustomerPerHourList);
         } catch (Exception e) {
@@ -88,9 +88,9 @@ public class ClassDataController {
     }
 
     @GetMapping("/getInCustomerPerHour")
-    public Msg getInCustomerPerHour(@RequestParam("address")String address, @RequestParam("dateTime")String dateTime)throws Exception {  //所有用户
+    public Msg getInCustomerPerHour(@RequestParam("address")String address, @RequestParam("dateTime")String dateTime,@RequestParam("indoorname")String indoorname)throws Exception {  //所有用户
         try {
-            List<InCustomerPerHour> inCustomerPerHourList = classDataService.getInCustomerPerHour(address, dateTime);
+            List<InCustomerPerHour> inCustomerPerHourList = classDataService.getInCustomerPerHour(address, dateTime, indoorname);
             Collections.reverse(inCustomerPerHourList);
             return new Msg(inCustomerPerHourList);
         } catch (Exception e) {

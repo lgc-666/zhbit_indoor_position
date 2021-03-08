@@ -60,20 +60,20 @@ public class ClassDataService {
         return classDataMapper.selectWithin1hourByClass();
     }
     public void updateWithin1hour(Integer hours,Integer num){ classDataMapper.updateWithin1hour(hours,num); }
-    public void insertClassData(String address,Integer hours){ classDataMapper.insertClassData(address,hours); }
+    public void insertClassData(String address,Integer hours,String indoorname){ classDataMapper.insertClassData(address,hours,indoorname); }
 
-    public List<SumData> getSum(String dateTime) {//获取当天室内总数据
-        return classDataMapper.getSum(dateTime);
+    public List<SumData> getSum(String dateTime,String indoorname) {//获取当天室内总数据
+        return classDataMapper.getSum(dateTime,indoorname);
     }
 
-    public List<ClassData> getMainData(String address,String dateTime) {//获取主要数据
-        return classDataMapper.getMainData(address,dateTime);
+    public List<ClassData> getMainData(String address,String dateTime,String indoorname) {//获取主要数据
+        return classDataMapper.getMainData(address,dateTime,indoorname);
     }
 
-    public List<CustomerPerHour> getCustomerPerHour(String address, String dateTime) {//获取主要数据
-        return classDataMapper.getCustomerPerHour(address,dateTime);
+    public List<CustomerPerHour> getCustomerPerHour(String address, String dateTime, String indoorname) {//获取主要数据
+        return classDataMapper.getCustomerPerHour(address,dateTime,indoorname);
     }
-    public List<InCustomerPerHour> getInCustomerPerHour(String address, String dateTime) {//获取主要数据
-        return classDataMapper.getInCustomerPerHour(address,dateTime);
+    public List<InCustomerPerHour> getInCustomerPerHour(String address, String dateTime,String indoorname) {//获取主要数据
+        return classDataMapper.getInCustomerPerHour(address,dateTime,indoorname);
     }
 }

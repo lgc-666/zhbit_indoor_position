@@ -112,13 +112,13 @@ public class DeviceController {
     }
 
     @PutMapping("/updateStatus")
-    public Msg updateStatus(@RequestParam("status") String status,@RequestParam("id") String id) {
+    public Msg updateStatus(@RequestParam("status") String status,@RequestParam("id") String id,@RequestParam("indoorname") String indoorname) {
         try {
             System.out.println("设备操控");
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
             String dt = df.format(new Date());//获取当前系统时间并格式化
             System.out.println("id-stataus-dt的值："+id+"-"+status+"-"+dt);
-            logrecordService.addchange(id,status,dt);
+            logrecordService.addchange(id,status,dt,indoorname);
             deviceService.monitor(id);
         } catch (Exception e) {
             e.printStackTrace();

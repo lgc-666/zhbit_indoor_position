@@ -32,6 +32,6 @@ public interface LocationMapper {
     Location searchLocationleatMac(@Param("mac") String mac);
     String searchLocationX(@Param("mac") String mac);
     String searchLocationY(@Param("mac") String mac);
-    void insertLocation(@Param("mac") String mac,@Param("address") String address,@Param("x") String x,@Param("y") String y);
+    void insertLocation(@Param("mac") String mac,@Param("address") String address,@Param("x") String x,@Param("y") String y,@Param("indoorname") String indoorname);
     List<String> searchLocationMac();
 }

@@ -20,6 +20,8 @@ public class Machine implements Serializable {
 
     private String y;
 
+    private String indoorname;
+
     public Integer getMid() {
         return mid;
     }
@@ -82,5 +84,13 @@ public class Machine implements Serializable {
 
     public void setY(String y) {
         this.y = y == null ? null : y.trim();
+    }
+
+    public String getIndoorname() {
+        return indoorname;
+    }
+
+    public void setIndoorname(String indoorname) {
+        this.indoorname = indoorname == null ? null : indoorname.trim();
     }
 }

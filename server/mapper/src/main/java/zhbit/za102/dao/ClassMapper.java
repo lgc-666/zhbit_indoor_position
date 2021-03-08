@@ -30,5 +30,6 @@ public interface ClassMapper {
     int updateByPrimaryKey(Class record);
 
     List<String> findAllClass();
+    List<Class> findAllClassBean();
 
 }

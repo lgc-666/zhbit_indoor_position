@@ -101,10 +101,10 @@ public class VisitController {
     }
 
     @GetMapping("/sortVisit")
-    public Msg sortVisit(@RequestParam("dateTime")String dateTime,@RequestParam("address") String address)throws Exception {  //所有用户
+    public Msg sortVisit(@RequestParam("dateTime")String dateTime,@RequestParam("address") String address,@RequestParam("indoorname") String indoorname)throws Exception {  //所有用户
         try {
-            if(visitService.getSumVisit(dateTime, address)!=null){
-                return new Msg(visitService.getSumVisit(dateTime, address).getSum_visited_times());
+            if(visitService.getSumVisit(dateTime, address,indoorname)!=null){
+                return new Msg(visitService.getSumVisit(dateTime, address,indoorname).getSum_visited_times());
             }
             else {
                 return new Msg(0);
@@ -116,10 +116,10 @@ public class VisitController {
     }
 
     @GetMapping("/sortStoptime")
-    public Msg sortStoptime(@RequestParam("dateTime")String dateTime,@RequestParam("address") String address)throws Exception {  //所有用户
+    public Msg sortStoptime(@RequestParam("dateTime")String dateTime,@RequestParam("address") String address,@RequestParam("indoorname") String indoorname)throws Exception {  //所有用户
         try {
-            if(visitService.getSumStoptime(dateTime, address)!=null){
-                return new Msg(visitService.getSumStoptime(dateTime, address).getStoptime());
+            if(visitService.getSumStoptime(dateTime, address,indoorname)!=null){
+                return new Msg(visitService.getSumStoptime(dateTime, address,indoorname).getStoptime());
             }
             else {
                 return new Msg(0);
@@ -131,9 +131,9 @@ public class VisitController {
     }
 
     @GetMapping("/sortNow")
-    public Msg sortNow(@RequestParam("address") String address)throws Exception {  //所有用户
+    public Msg sortNow(@RequestParam("address") String address,@RequestParam("indoorname") String indoorname)throws Exception {  //所有用户
         try {
-                return new Msg(visitService.getsortNow(address));
+                return new Msg(visitService.getsortNow(address,indoorname));
         } catch (Exception e) {
             e.printStackTrace();
             return new Msg("查询失败", 401);

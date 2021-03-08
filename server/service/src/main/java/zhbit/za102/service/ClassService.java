@@ -50,6 +50,13 @@ public class ClassService {
         return classMapper.selectByExample(example);
     }
 
+    public List<Class> list3(String indoorname) {
+        ClassExample example = new ClassExample();
+        example.createCriteria().andIndoornameEqualTo(indoorname);
+        example.setOrderByClause("classid desc");
+        return classMapper.selectByExample(example);
+    }
+
     @Cacheable(value="Class",key = "'list'+'-'+#start+'-'+#size")
     public Msg list(int start, int size) {
         PageHelper.startPage(start, size, "classid desc");
@@ -69,9 +76,20 @@ public class ClassService {
         return classMapper.findAllClass();
     }
 
+    public List<Class> findAllClassBean(){
+        return classMapper.findAllClassBean();
+    }
+
+
     public List<Class> listbyaddress(String addressname) {
         ClassExample example = new ClassExample();
         example.createCriteria().andAdressEqualTo(addressname);
+        return classMapper.selectByExample(example);
+    }
+
+    public List<Class> listbyaddress2(String addressname,String indoorname) {
+        ClassExample example = new ClassExample();
+        example.createCriteria().andAdressEqualTo(addressname).andIndoornameEqualTo(indoorname);
         return classMapper.selectByExample(example);
     }
 }

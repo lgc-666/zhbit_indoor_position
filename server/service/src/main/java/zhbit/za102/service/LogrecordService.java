@@ -74,7 +74,7 @@ public class LogrecordService {
     }
 
     @CacheEvict(value="Logrecord",allEntries = true)
-    public void addchange(String id,String changevalue,String gentime){
-        logrecordMapper.addchange(id,changevalue,gentime);
+    public void addchange(String id,String changevalue,String gentime,String indoorname){
+        logrecordMapper.addchange(id,changevalue,gentime,indoorname);
     }
 }

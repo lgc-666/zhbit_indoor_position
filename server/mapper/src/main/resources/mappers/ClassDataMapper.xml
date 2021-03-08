@@ -12,22 +12,23 @@
     <result column="hour_in_class_number" jdbcType="INTEGER" property="hourInClassNumber" />
     <result column="updatetime" jdbcType="TIMESTAMP" property="updatetime" />
     <result column="hours" jdbcType="INTEGER" property="hours" />
+    <result column="indoorname" jdbcType="VARCHAR" property="indoorname" />
   </resultMap>
 
   <!--获取展示数据值-->
   <select id="getSum" resultType="zhbit.za102.bean.SumData" >
-    SELECT SUM(in_class_number) AS sum_in ,SUM(new_student) AS sum_new FROM class_data where ( datediff ( updatetime , #{dateTime} ) = 0 )
+    SELECT SUM(in_class_number) AS sum_in ,SUM(new_student) AS sum_new FROM class_data where ( datediff ( updatetime , #{dateTime} ) = 0 ) and indoorname = #{indoorname}
   </select>
 
   <!--获取展示数据值-->
   <select id="getMainData" resultType="zhbit.za102.bean.ClassData" >
-    select  id,adress,new_student as newStudent,in_class_number as inClassNumber,jump_out as jumpOut,class_now_number as classNowNumber,hour_class_number as hourClassNumber,hour_in_class_number as hourInClassNumber,updatetime,hours from class_data where adress = #{address} and  ( datediff ( updatetime , #{dateTime} ) = 0 ) order by updatetime desc
+    select  id,adress,new_student as newStudent,in_class_number as inClassNumber,jump_out as jumpOut,class_now_number as classNowNumber,hour_class_number as hourClassNumber,hour_in_class_number as hourInClassNumber,updatetime,hours from class_data where adress = #{address} and indoorname = #{indoorname} and  ( datediff ( updatetime , #{dateTime} ) = 0 ) order by updatetime desc
   </select>
   <select id="getCustomerPerHour" resultType="zhbit.za102.bean.CustomerPerHour" >
-    select hour_class_number,hours from class_data where adress = #{address} and  ( datediff ( updatetime , #{dateTime} ) = 0 ) order by updatetime desc
+    select hour_class_number,hours from class_data where adress = #{address} and indoorname = #{indoorname} and  ( datediff ( updatetime , #{dateTime} ) = 0 ) order by updatetime desc
   </select>
   <select id="getInCustomerPerHour" resultType="zhbit.za102.bean.InCustomerPerHour" >
-    select hour_in_class_number,hours from class_data where adress = #{address} and  ( datediff ( updatetime , #{dateTime} ) = 0 ) order by updatetime desc
+    select hour_in_class_number,hours from class_data where adress = #{address} and indoorname = #{indoorname} and  ( datediff ( updatetime , #{dateTime} ) = 0 ) order by updatetime desc
   </select>
 
 
@@ -36,7 +37,7 @@
     select count(*) from class_data where updatetime>=(NOW() - interval 1 hour)
   </select>
   <select id="selectWithin1hourByClass" resultType="java.lang.Integer" >
-    select count(*) from class_data where adress = #{address} and updatetime>=(NOW() - interval 1 hour)
+    select count(*) from class_data where adress = #{address} and indoorname = #{indoorname} and updatetime>=(NOW() - interval 1 hour)
   </select>
 
   <!--差值小于1小时则进行更新-->
@@ -51,9 +52,9 @@
   <!--差值大于1小时进行插入-->
   <insert id="insertClassData">
         insert into class_data
-        (adress,new_student,in_class_number,jump_out,class_now_number,hour_class_number,hour_in_class_number,updatetime,hours)
+        (adress,new_student,in_class_number,jump_out,class_now_number,hour_class_number,hour_in_class_number,updatetime,hours,indoorname)
         values
-        (#{address},0,0,0,0,0,0,CURRENT_TIMESTAMP,#{hours})
+        (#{address},0,0,0,0,0,0,CURRENT_TIMESTAMP,#{hours},#{indoorname})
   </insert>
 
   <!--倒序排序更新最新的那一条-->
@@ -63,12 +64,12 @@
         SET
         new_student = new_student+#{newStudent},in_class_number =in_class_number+#{inClassNumber},hour_in_class_number = hour_in_class_number+#{hourInClassNumber}
         WHERE
-        id in (select id from (select * from class_data where adress=#{address} ORDER BY updatetime desc LIMIT 1)as t)
+        id in (select id from (select * from class_data where adress=#{address} ORDER BY updatetime desc LIMIT 1)as t) and indoorname = #{indoorname}
  </update>
 
   <!--根据区域名搜索该区域的小时进入区域数量-->
   <select id="searchNowHour_in_customer_number" resultType="java.lang.Integer" >
-    select hour_in_class_number from class_data where id in (select id from (select * from class_data where adress=#{address} ORDER BY updatetime desc LIMIT 1)as t)
+    select hour_in_class_number from class_data where id in (select id from (select * from class_data where adress=#{address} and indoorname = #{indoorname} ORDER BY updatetime desc LIMIT 1)as t)
   </select>
 
   <!--更新跳出量、动态当前客流量和小时客流量-->
@@ -78,7 +79,7 @@
         SET
         class_now_number = #{dynamic_customer},jump_out = jump_out+#{jumpOut_customer},hour_class_number = #{subHour_customer}
         WHERE
-        id in (select id from (select * from class_data where adress=#{address} ORDER BY updatetime desc LIMIT 1)as t)
+        id in (select id from (select * from class_data where adress=#{address} ORDER BY updatetime desc LIMIT 1)as t) and indoorname = #{indoorname}
   </update>
 
   <!--更新遗漏的跳出量-->
@@ -88,13 +89,14 @@
       SET
       jump_out =jump_out+1
       WHERE
-      id in (select id from (select * from class_data where adress=#{address} ORDER BY updatetime desc LIMIT 1)as t)
+      id in (select id from (select * from class_data where adress=#{address} ORDER BY updatetime desc LIMIT 1)as t) and indoorname = #{indoorname}
   </update>
 
   <!--删除三个月前的数据-->
   <delete id="deleteExpiredShop_data">
         delete from class_data where updatetime &lt; DATE_SUB(CURDATE(),INTERVAL 3 MONTH)
   </delete>
+
 
 
   <sql id="Example_Where_Clause">
@@ -157,7 +159,7 @@
   </sql>
   <sql id="Base_Column_List">
     id, adress, new_student, in_class_number, jump_out, class_now_number, hour_class_number, 
-    hour_in_class_number, updatetime, hours
+    hour_in_class_number, updatetime, hours, indoorname
   </sql>
   <select id="selectByExample" parameterType="zhbit.za102.bean.ClassDataExample" resultMap="BaseResultMap">
     select
@@ -193,12 +195,12 @@
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="zhbit.za102.bean.ClassData" useGeneratedKeys="true">
     insert into class_data (adress, new_student, in_class_number, 
       jump_out, class_now_number, hour_class_number, 
-      hour_in_class_number, updatetime, hours
-      )
+      hour_in_class_number, updatetime, hours, 
+      indoorname)
     values (#{adress,jdbcType=VARCHAR}, #{newStudent,jdbcType=INTEGER}, #{inClassNumber,jdbcType=INTEGER}, 
       #{jumpOut,jdbcType=INTEGER}, #{classNowNumber,jdbcType=INTEGER}, #{hourClassNumber,jdbcType=INTEGER}, 
-      #{hourInClassNumber,jdbcType=INTEGER}, #{updatetime,jdbcType=TIMESTAMP}, #{hours,jdbcType=INTEGER}
-      )
+      #{hourInClassNumber,jdbcType=INTEGER}, #{updatetime,jdbcType=TIMESTAMP}, #{hours,jdbcType=INTEGER}, 
+      #{indoorname,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="zhbit.za102.bean.ClassData" useGeneratedKeys="true">
     insert into class_data
@@ -230,6 +232,9 @@
       <if test="hours != null">
         hours,
       </if>
+      <if test="indoorname != null">
+        indoorname,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="adress != null">
@@ -258,6 +263,9 @@
       </if>
       <if test="hours != null">
         #{hours,jdbcType=INTEGER},
+      </if>
+      <if test="indoorname != null">
+        #{indoorname,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -300,6 +308,9 @@
       <if test="record.hours != null">
         hours = #{record.hours,jdbcType=INTEGER},
       </if>
+      <if test="record.indoorname != null">
+        indoorname = #{record.indoorname,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -316,7 +327,8 @@
       hour_class_number = #{record.hourClassNumber,jdbcType=INTEGER},
       hour_in_class_number = #{record.hourInClassNumber,jdbcType=INTEGER},
       updatetime = #{record.updatetime,jdbcType=TIMESTAMP},
-      hours = #{record.hours,jdbcType=INTEGER}
+      hours = #{record.hours,jdbcType=INTEGER},
+      indoorname = #{record.indoorname,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -351,6 +363,9 @@
       <if test="hours != null">
         hours = #{hours,jdbcType=INTEGER},
       </if>
+      <if test="indoorname != null">
+        indoorname = #{indoorname,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=INTEGER}
   </update>
@@ -364,7 +379,8 @@
       hour_class_number = #{hourClassNumber,jdbcType=INTEGER},
       hour_in_class_number = #{hourInClassNumber,jdbcType=INTEGER},
       updatetime = #{updatetime,jdbcType=TIMESTAMP},
-      hours = #{hours,jdbcType=INTEGER}
+      hours = #{hours,jdbcType=INTEGER},
+      indoorname = #{indoorname,jdbcType=VARCHAR}
     where id = #{id,jdbcType=INTEGER}
   </update>
 </mapper>

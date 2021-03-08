@@ -108,7 +108,7 @@ public class StopVisitController {
     }
 
     @PutMapping("/doStopVisit")
-    public Msg doStopVisit(@RequestParam("stop_visit_id") Integer stop_visit_id,@RequestParam("address") String address) {
+    public Msg doStopVisit(@RequestParam("stop_visit_id") Integer stop_visit_id,@RequestParam("address") String address,@RequestParam("indoorname") String indoorname) {
         try {
             System.out.println("已处理关闭报警器");
             //更新禁止区域处理状态
@@ -124,7 +124,7 @@ public class StopVisitController {
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
                 String dt = df.format(new Date());//获取当前系统时间并格式化
                 System.out.println("id-stataus-dt的值："+d.getId()+"-"+dt);
-                logrecordService.addchange(d.getId(),"0",dt);
+                logrecordService.addchange(d.getId(),"0",dt,indoorname);
                 deviceService.monitor(d.getId());
             }
             return new Msg("操作成功");

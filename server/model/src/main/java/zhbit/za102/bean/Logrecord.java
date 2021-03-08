@@ -13,6 +13,8 @@ public class Logrecord implements Serializable {
 
     private String gentime;
 
+    private String indoorname;
+
     public Integer getLogid() {
         return logid;
     }
@@ -51,5 +53,13 @@ public class Logrecord implements Serializable {
 
     public void setGentime(String gentime) {
         this.gentime = gentime == null ? null : gentime.trim();
+    }
+
+    public String getIndoorname() {
+        return indoorname;
+    }
+
+    public void setIndoorname(String indoorname) {
+        this.indoorname = indoorname == null ? null : indoorname.trim();
     }
 }

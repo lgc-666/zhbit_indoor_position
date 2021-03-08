@@ -1,26 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="zhbit.za102.dao.LogrecordMapper">
-  <resultMap id="BaseResultMap" type="zhbit.za102.bean.Logrecord">
-    <id column="logid" jdbcType="INTEGER" property="logid" />
-    <result column="id" jdbcType="VARCHAR" property="id" />
-    <result column="cardid" jdbcType="VARCHAR" property="cardid" />
-    <result column="changevalue" jdbcType="VARCHAR" property="changevalue" />
-    <result column="gentime" jdbcType="VARCHAR" property="gentime" />
+<mapper namespace="zhbit.za102.dao.map_mamageMapper">
+  <resultMap id="BaseResultMap" type="zhbit.za102.bean.map_mamage">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="fmapID" jdbcType="VARCHAR" property="fmapid" />
     <result column="indoorname" jdbcType="VARCHAR" property="indoorname" />
+    <result column="longitude" jdbcType="VARCHAR" property="longitude" />
+    <result column="latitude" jdbcType="VARCHAR" property="latitude" />
+    <result column="charge" jdbcType="VARCHAR" property="charge" />
   </resultMap>
 
-  <insert id="addchange">
-        insert into logrecord01
-        (id,cardid,changevalue,gentime,indoorname)
-        values
-        (#{id},"0",#{changevalue},#{gentime},#{indoorname})
-  </insert>
-
-  <select id="findAllLogrecord" resultType="java.lang.String" >
-    select id from logrecord01
+  <select id="findAllMap" resultType="java.lang.String" >
+    select indoorname from map_mamage
   </select>
-
 
   <sql id="Example_Where_Clause">
     <where>
@@ -81,16 +73,16 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    logid, id, cardid, changevalue, gentime, indoorname
+    id, fmapID, indoorname, longitude, latitude, charge
   </sql>
-  <select id="selectByExample" parameterType="zhbit.za102.bean.LogrecordExample" resultMap="BaseResultMap">
+  <select id="selectByExample" parameterType="zhbit.za102.bean.map_mamageExample" resultMap="BaseResultMap">
     select
     <if test="distinct">
       distinct
     </if>
     'true' as QUERYID,
     <include refid="Base_Column_List" />
-    from logrecord01
+    from map_mamage
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
@@ -101,88 +93,88 @@
   <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
     select 
     <include refid="Base_Column_List" />
-    from logrecord01
-    where logid = #{logid,jdbcType=INTEGER}
+    from map_mamage
+    where id = #{id,jdbcType=INTEGER}
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
-    delete from logrecord01
-    where logid = #{logid,jdbcType=INTEGER}
+    delete from map_mamage
+    where id = #{id,jdbcType=INTEGER}
   </delete>
-  <delete id="deleteByExample" parameterType="zhbit.za102.bean.LogrecordExample">
-    delete from logrecord01
+  <delete id="deleteByExample" parameterType="zhbit.za102.bean.map_mamageExample">
+    delete from map_mamage
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" keyColumn="logid" keyProperty="logid" parameterType="zhbit.za102.bean.Logrecord" useGeneratedKeys="true">
-    insert into logrecord01 (id, cardid, changevalue, 
-      gentime, indoorname)
-    values (#{id,jdbcType=VARCHAR}, #{cardid,jdbcType=VARCHAR}, #{changevalue,jdbcType=VARCHAR}, 
-      #{gentime,jdbcType=VARCHAR}, #{indoorname,jdbcType=VARCHAR})
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="zhbit.za102.bean.map_mamage" useGeneratedKeys="true">
+    insert into map_mamage (fmapID, indoorname, longitude, 
+      latitude, charge)
+    values (#{fmapid,jdbcType=VARCHAR}, #{indoorname,jdbcType=VARCHAR}, #{longitude,jdbcType=VARCHAR}, 
+      #{latitude,jdbcType=VARCHAR}, #{charge,jdbcType=VARCHAR})
   </insert>
-  <insert id="insertSelective" keyColumn="logid" keyProperty="logid" parameterType="zhbit.za102.bean.Logrecord" useGeneratedKeys="true">
-    insert into logrecord01
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="zhbit.za102.bean.map_mamage" useGeneratedKeys="true">
+    insert into map_mamage
     <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="id != null">
-        id,
-      </if>
-      <if test="cardid != null">
-        cardid,
-      </if>
-      <if test="changevalue != null">
-        changevalue,
-      </if>
-      <if test="gentime != null">
-        gentime,
+      <if test="fmapid != null">
+        fmapID,
       </if>
       <if test="indoorname != null">
         indoorname,
       </if>
+      <if test="longitude != null">
+        longitude,
+      </if>
+      <if test="latitude != null">
+        latitude,
+      </if>
+      <if test="charge != null">
+        charge,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="id != null">
-        #{id,jdbcType=VARCHAR},
-      </if>
-      <if test="cardid != null">
-        #{cardid,jdbcType=VARCHAR},
-      </if>
-      <if test="changevalue != null">
-        #{changevalue,jdbcType=VARCHAR},
-      </if>
-      <if test="gentime != null">
-        #{gentime,jdbcType=VARCHAR},
+      <if test="fmapid != null">
+        #{fmapid,jdbcType=VARCHAR},
       </if>
       <if test="indoorname != null">
         #{indoorname,jdbcType=VARCHAR},
       </if>
+      <if test="longitude != null">
+        #{longitude,jdbcType=VARCHAR},
+      </if>
+      <if test="latitude != null">
+        #{latitude,jdbcType=VARCHAR},
+      </if>
+      <if test="charge != null">
+        #{charge,jdbcType=VARCHAR},
+      </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="zhbit.za102.bean.LogrecordExample" resultType="java.lang.Long">
-    select count(*) from logrecord01
+  <select id="countByExample" parameterType="zhbit.za102.bean.map_mamageExample" resultType="java.lang.Long">
+    select count(*) from map_mamage
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </select>
   <update id="updateByExampleSelective" parameterType="map">
-    update logrecord01
+    update map_mamage
     <set>
-      <if test="record.logid != null">
-        logid = #{record.logid,jdbcType=INTEGER},
-      </if>
       <if test="record.id != null">
-        id = #{record.id,jdbcType=VARCHAR},
+        id = #{record.id,jdbcType=INTEGER},
       </if>
-      <if test="record.cardid != null">
-        cardid = #{record.cardid,jdbcType=VARCHAR},
-      </if>
-      <if test="record.changevalue != null">
-        changevalue = #{record.changevalue,jdbcType=VARCHAR},
-      </if>
-      <if test="record.gentime != null">
-        gentime = #{record.gentime,jdbcType=VARCHAR},
+      <if test="record.fmapid != null">
+        fmapID = #{record.fmapid,jdbcType=VARCHAR},
       </if>
       <if test="record.indoorname != null">
         indoorname = #{record.indoorname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.longitude != null">
+        longitude = #{record.longitude,jdbcType=VARCHAR},
+      </if>
+      <if test="record.latitude != null">
+        latitude = #{record.latitude,jdbcType=VARCHAR},
+      </if>
+      <if test="record.charge != null">
+        charge = #{record.charge,jdbcType=VARCHAR},
       </if>
     </set>
     <if test="_parameter != null">
@@ -190,45 +182,45 @@
     </if>
   </update>
   <update id="updateByExample" parameterType="map">
-    update logrecord01
-    set logid = #{record.logid,jdbcType=INTEGER},
-      id = #{record.id,jdbcType=VARCHAR},
-      cardid = #{record.cardid,jdbcType=VARCHAR},
-      changevalue = #{record.changevalue,jdbcType=VARCHAR},
-      gentime = #{record.gentime,jdbcType=VARCHAR},
-      indoorname = #{record.indoorname,jdbcType=VARCHAR}
+    update map_mamage
+    set id = #{record.id,jdbcType=INTEGER},
+      fmapID = #{record.fmapid,jdbcType=VARCHAR},
+      indoorname = #{record.indoorname,jdbcType=VARCHAR},
+      longitude = #{record.longitude,jdbcType=VARCHAR},
+      latitude = #{record.latitude,jdbcType=VARCHAR},
+      charge = #{record.charge,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="zhbit.za102.bean.Logrecord">
-    update logrecord01
+  <update id="updateByPrimaryKeySelective" parameterType="zhbit.za102.bean.map_mamage">
+    update map_mamage
     <set>
-      <if test="id != null">
-        id = #{id,jdbcType=VARCHAR},
-      </if>
-      <if test="cardid != null">
-        cardid = #{cardid,jdbcType=VARCHAR},
-      </if>
-      <if test="changevalue != null">
-        changevalue = #{changevalue,jdbcType=VARCHAR},
-      </if>
-      <if test="gentime != null">
-        gentime = #{gentime,jdbcType=VARCHAR},
+      <if test="fmapid != null">
+        fmapID = #{fmapid,jdbcType=VARCHAR},
       </if>
       <if test="indoorname != null">
         indoorname = #{indoorname,jdbcType=VARCHAR},
       </if>
+      <if test="longitude != null">
+        longitude = #{longitude,jdbcType=VARCHAR},
+      </if>
+      <if test="latitude != null">
+        latitude = #{latitude,jdbcType=VARCHAR},
+      </if>
+      <if test="charge != null">
+        charge = #{charge,jdbcType=VARCHAR},
+      </if>
     </set>
-    where logid = #{logid,jdbcType=INTEGER}
+    where id = #{id,jdbcType=INTEGER}
   </update>
-  <update id="updateByPrimaryKey" parameterType="zhbit.za102.bean.Logrecord">
-    update logrecord01
-    set id = #{id,jdbcType=VARCHAR},
-      cardid = #{cardid,jdbcType=VARCHAR},
-      changevalue = #{changevalue,jdbcType=VARCHAR},
-      gentime = #{gentime,jdbcType=VARCHAR},
-      indoorname = #{indoorname,jdbcType=VARCHAR}
-    where logid = #{logid,jdbcType=INTEGER}
+  <update id="updateByPrimaryKey" parameterType="zhbit.za102.bean.map_mamage">
+    update map_mamage
+    set fmapID = #{fmapid,jdbcType=VARCHAR},
+      indoorname = #{indoorname,jdbcType=VARCHAR},
+      longitude = #{longitude,jdbcType=VARCHAR},
+      latitude = #{latitude,jdbcType=VARCHAR},
+      charge = #{charge,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
   </update>
 </mapper>
