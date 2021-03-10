@@ -170,7 +170,7 @@ public class DataUtil {
 
         //非法进入开启报警器（报警器类型是5）
         System.out.println("非法进入开启报警器");
-        List<Device> devices = deviceService.listbyAdress(address);
+        List<Device> devices = deviceService.listbyAdress(address,indoorname);
         if(devices.size()!=0){
             for(Device d:devices){
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式

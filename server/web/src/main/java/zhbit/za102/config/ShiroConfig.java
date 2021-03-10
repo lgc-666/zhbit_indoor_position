@@ -101,6 +101,8 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/addmachine", "perms[addmachine]");
         filterChainDefinitionMap.put("/listmachineSearch", "perms[listmachineSearch]");
 
+        filterChainDefinitionMap.put("/listClassNoPagePublic", "perms[listClassNoPagePublic]");
+        filterChainDefinitionMap.put("/listClassNoPageStop", "perms[listClassNoPageStop]");
         filterChainDefinitionMap.put("/listClassNoPage", "perms[listClassNoPage]");
         filterChainDefinitionMap.put("/listClass", "perms[listClass]");
         filterChainDefinitionMap.put("/deleteClass", "perms[deleteClass]");
@@ -144,6 +146,13 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/sortVisit", "perms[sortVisit]");
         filterChainDefinitionMap.put("/sortStoptime", "perms[sortStoptime]");
         filterChainDefinitionMap.put("/sortNow", "perms[sortNow]");
+
+        filterChainDefinitionMap.put("/listMapMamageNoPage", "perms[listMapMamageNoPage]");
+        filterChainDefinitionMap.put("/listMapMamage", "perms[listMapMamage]");
+        filterChainDefinitionMap.put("/deleteMapMamage", "perms[deleteMapMamage]");
+        filterChainDefinitionMap.put("/updateMapMamage", "perms[updateMapMamage]");
+        filterChainDefinitionMap.put("/addMapMamage", "perms[addMapMamage]");
+        filterChainDefinitionMap.put("/listMapMamageSearch", "perms[listMapMamageSearch]");
 
         filterChainDefinitionMap.put("/updateStatus", "perms[updateStatus]");
         filterChainDefinitionMap.put("/doStopVisit", "perms[doStopVisit]");

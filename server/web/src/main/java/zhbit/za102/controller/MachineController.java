@@ -52,7 +52,7 @@ public class MachineController {
     }
 
     @PutMapping("/updatemachine")
-    public Msg update(@RequestParam("mid") Integer mid, @RequestParam("adress") String adress, @RequestParam("machineid") String machineid, @RequestParam("status") String status, @RequestParam("leastRssi") Integer leastRssi, @RequestParam("beat") String beat, @RequestParam("x") String x, @RequestParam("y") String y) {
+    public Msg update(@RequestParam("mid") Integer mid, @RequestParam("adress") String adress, @RequestParam("indoorname") String indoorname, @RequestParam("machineid") String machineid, @RequestParam("status") String status, @RequestParam("leastRssi") Integer leastRssi, @RequestParam("beat") String beat, @RequestParam("x") String x, @RequestParam("y") String y) {
         try {
             Machine c=machineService.get(mid);
             c.setAdress(adress);
@@ -70,6 +70,7 @@ public class MachineController {
             c.setX(x);
             c.setY(y);
             c.setStatus(status);
+            c.setIndoorname(indoorname);
             machineService.update(c);
             return new Msg("修改操作成功");
         } catch (Exception e) {
@@ -79,7 +80,7 @@ public class MachineController {
     }
 
     @PostMapping("/addmachine")
-    public Msg add(@RequestParam("adress") String adress, @RequestParam("machineid") String machineid, @RequestParam("status") String status, @RequestParam("leastRssi") Integer leastRssi, @RequestParam("beat") String beat, @RequestParam("x") String x, @RequestParam("y") String y) {
+    public Msg add(@RequestParam("adress") String adress, @RequestParam("indoorname") String indoorname, @RequestParam("machineid") String machineid, @RequestParam("status") String status, @RequestParam("leastRssi") Integer leastRssi, @RequestParam("beat") String beat, @RequestParam("x") String x, @RequestParam("y") String y) {
         try {
             Machine c=new Machine();
             c.setAdress(adress);
@@ -92,6 +93,7 @@ public class MachineController {
             c.setX(x);
             c.setY(y);
             c.setStatus(status);
+            c.setIndoorname(indoorname);
             machineService.add(c);
             return new Msg("新增操作成功");
         } catch (Exception e) {

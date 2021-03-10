@@ -52,12 +52,13 @@ public class LogrecordController {
     }
 
     @PutMapping("/updateLogrecord")
-    public Msg update(@RequestParam("logid") Integer logid, @RequestParam("id") String id, @RequestParam("changevalue") String changevalue, @RequestParam("gentime") String gentime) {
+    public Msg update(@RequestParam("logid") Integer logid, @RequestParam("id") String id, @RequestParam("changevalue") String changevalue, @RequestParam("gentime") String gentime,@RequestParam("indoorname") String indoorname) {
         try {
             Logrecord c=logrecordService.get(logid);
             c.setId(id);
             c.setChangevalue(changevalue);
             c.setGentime(gentime);
+            c.setIndoorname(indoorname);
             logrecordService.update(c);
             return new Msg("修改操作成功");
         } catch (Exception e) {
@@ -67,12 +68,13 @@ public class LogrecordController {
     }
 
     @PostMapping("/addLogrecord")
-    public Msg add(@RequestParam("id") String id, @RequestParam("changevalue") String changevalue, @RequestParam("gentime") String gentime) {
+    public Msg add(@RequestParam("id") String id, @RequestParam("changevalue") String changevalue, @RequestParam("gentime") String gentime,@RequestParam("indoorname") String indoorname) {
         try {
             Logrecord c=new Logrecord();
             c.setId(id);
             c.setChangevalue(changevalue);
             c.setGentime(gentime);
+            c.setIndoorname(indoorname);
             logrecordService.add(c);
             return new Msg("新增操作成功");
         } catch (Exception e) {

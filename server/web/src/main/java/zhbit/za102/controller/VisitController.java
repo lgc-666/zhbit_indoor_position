@@ -53,7 +53,7 @@ public class VisitController {
     }
 
     @PutMapping("/updateVisit")
-    public Msg update(@RequestParam("visitid") Integer visitid, @RequestParam("address") String address,
+    public Msg update(@RequestParam("visitid") Integer visitid, @RequestParam("address") String address, @RequestParam("indoorname") String indoorname,
                       @RequestParam("rt") String rt, @RequestParam("visited_times") Integer visited_times, @RequestParam("inJudge") Integer inJudge, @RequestParam("mac") String mac) {
         try {
             Visit c=visitService.get(visitid);
@@ -61,6 +61,7 @@ public class VisitController {
             c.setVisitedTimes(visited_times);
             c.setRt(rt);
             c.setMac(mac);
+            c.setIndoorname(indoorname);
             if(inJudge!=null){
                 c.setInjudge(inJudge);
             }
@@ -74,7 +75,7 @@ public class VisitController {
 
     @PostMapping("/addVisit")
     public Msg add(@RequestParam("address") String address, @RequestParam("in_time") String in_time, @RequestParam("left_time") String left_time,
-                   @RequestParam("last_in_time") String last_in_time,
+                   @RequestParam("last_in_time") String last_in_time, @RequestParam("indoorname") String indoorname,
                    @RequestParam("rt") String rt, @RequestParam("visited_times") Integer visited_times, @RequestParam("inJudge") Integer inJudge, @RequestParam("mac") String mac) {
         try {
             Visit c=new Visit();
@@ -92,6 +93,7 @@ public class VisitController {
             c.setRt(rt);
             c.setMac(mac);
             c.setInjudge(inJudge);
+            c.setIndoorname(indoorname);
             visitService.add(c);
             return new Msg("新增操作成功");
         } catch (Exception e) {

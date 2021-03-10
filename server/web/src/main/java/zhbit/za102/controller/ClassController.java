@@ -12,6 +12,26 @@ public class ClassController {
     @Autowired
     ClassService classService;
 
+    @GetMapping("/listClassNoPagePublic")
+    public Msg listPublic()throws Exception {  //所有用户
+        try {
+            return new Msg(classService.listPublic());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Msg("查询失败", 401);
+        }
+    }
+
+    @GetMapping("/listClassNoPageStop")
+    public Msg listStop()throws Exception {  //所有用户
+        try {
+            return new Msg(classService.listStop());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Msg("查询失败", 401);
+        }
+    }
+
     @GetMapping("/listClassNoPage")
     public Msg list()throws Exception {  //所有用户
         try {
@@ -57,7 +77,7 @@ public class ClassController {
 
     @PutMapping("/updateClass")
     public Msg update(@RequestParam("classid") Integer classid, @RequestParam("adress") String adress, @RequestParam("x1") String x1, @RequestParam("x2") String x2,
-                      @RequestParam("y1") String y1, @RequestParam("y2") String y2, @RequestParam("stopJudge") Integer stopJudge) {
+                      @RequestParam("y1") String y1, @RequestParam("y2") String y2, @RequestParam("stopJudge") Integer stopJudge, @RequestParam("indoorname") String indoorname) {
         try {
             Class c=classService.get(classid);
             c.setAdress(adress);
@@ -65,6 +85,7 @@ public class ClassController {
             c.setX2(x2);
             c.setY1(y1);
             c.setY2(y2);
+            c.setIndoorname(indoorname);
             if(stopJudge!=null){
                 c.setStopjudge(stopJudge);
             }
@@ -77,7 +98,7 @@ public class ClassController {
     }
 
     @PostMapping("/addClass")
-    public Msg add(@RequestParam("adress") String adress, @RequestParam("x1") String x1, @RequestParam("x2") String x2, @RequestParam("y1") String y1, @RequestParam("y2") String y2, @RequestParam("stopJudge") Integer stopJudge) { //更改用户权限(传数组)
+    public Msg add(@RequestParam("adress") String adress, @RequestParam("x1") String x1, @RequestParam("x2") String x2, @RequestParam("y1") String y1, @RequestParam("y2") String y2, @RequestParam("stopJudge") Integer stopJudge, @RequestParam("indoorname") String indoorname) { //更改用户权限(传数组)
         try {
             Class c=new Class();
             c.setAdress(adress);
@@ -86,6 +107,7 @@ public class ClassController {
             c.setY1(y1);
             c.setY2(y2);
             c.setStopjudge(stopJudge);
+            c.setIndoorname(indoorname);
             classService.add(c);
             return new Msg("新增操作成功");
         } catch (Exception e) {

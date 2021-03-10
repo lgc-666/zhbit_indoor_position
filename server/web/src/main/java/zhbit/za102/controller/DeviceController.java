@@ -67,7 +67,8 @@ public class DeviceController {
     @PutMapping("/updateDevice")
     public Msg update(@RequestParam("deviceid") Integer deviceid, @RequestParam("devicename") String devicename,@RequestParam("id") String id,
                       @RequestParam("devicetype") String devicetype, @RequestParam("devicevalue") String devicevalue, @RequestParam("location") String location,
-                      @RequestParam("lasttime") String lasttime,@RequestParam("gentime") String gentime, @RequestParam("ip") String ip) {
+                      @RequestParam("lasttime") String lasttime,@RequestParam("gentime") String gentime, @RequestParam("ip") String ip,
+                      @RequestParam("indoorname") String indoorname) {
         try {
             Device c=deviceService.get(deviceid);
             c.setDevicename(devicename);
@@ -78,6 +79,7 @@ public class DeviceController {
             c.setLocation(location);
             c.setIp(ip);
             c.setId(id);
+            c.setIndoorname(indoorname);
             deviceService.update(c);
             return new Msg("修改操作成功");
         } catch (Exception e) {
@@ -90,7 +92,7 @@ public class DeviceController {
     public Msg add(@RequestParam("deviceid") Integer deviceid, @RequestParam("devicename") String devicename,@RequestParam("id") String id,
                    @RequestParam("devicetype") String devicetype, @RequestParam("devicevalue") String devicevalue, @RequestParam("location") String location,
                    @RequestParam("lasttime") String lasttime,@RequestParam("gentime") String gentime,@RequestParam("owner") String owner,
-                   @RequestParam("ip") String ip,@RequestParam("port") Integer port) {
+                   @RequestParam("ip") String ip,@RequestParam("port") Integer port,@RequestParam("indoorname") String indoorname) {
             try {
             Device c=new Device();
             c.setDevicename(devicename);
@@ -103,6 +105,7 @@ public class DeviceController {
             c.setId(id);
             c.setPort(port);
             c.setOwner(owner);
+            c.setIndoorname(indoorname);
             deviceService.add(c);
             return new Msg("新增操作成功");
         } catch (Exception e) {

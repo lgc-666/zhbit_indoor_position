@@ -54,9 +54,9 @@ public class ClassDataController {
             Integer new_student = 0;
             Integer class_now_number  = 0;
             List<ClassData> shop_dataList = classDataService.getMainData(address,dateTime,indoorname);
-            if (shop_dataList.size()==0)
-                return new Msg("请选中展示区域", 401);
-            System.out.println("第一行："+shop_dataList.get(0).getClassNowNumber());
+            if (shop_dataList.size()==0) {    //return new Msg("当天无访问数据,可选择历史日期进行查看",401);
+            }
+                System.out.println("第一行："+shop_dataList.get(0).getClassNowNumber());
             for (ClassData shop_data:shop_dataList) {
                 in_class_number+=shop_data.getInClassNumber();
                 new_student+=shop_data.getNewStudent();

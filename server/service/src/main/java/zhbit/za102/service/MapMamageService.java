@@ -53,4 +53,17 @@ public class MapMamageService {
         PageInfo<map_mamage> page = new PageInfo<>(us);
         return new Msg(page);
     }
+
+    public List<map_mamage> list2(String staffdata) {
+        map_mamageExample example = new map_mamageExample();
+        example.createCriteria().andChargeEqualTo(staffdata);
+        example.setOrderByClause("id desc");
+        return mapMamageMapper.selectByExample(example);
+    }
+    public Msg listSearch(String staffdata,int start, int size) {
+        PageHelper.startPage(start, size, "id desc");
+        List<map_mamage> us = list2(staffdata);
+        PageInfo<map_mamage> page = new PageInfo<>(us);
+        return new Msg(page);
+    }
 }

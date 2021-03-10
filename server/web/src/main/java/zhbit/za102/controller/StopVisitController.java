@@ -60,7 +60,8 @@ public class StopVisitController {
 
     @PutMapping("/updateStopVisit")
     public Msg update(@RequestParam("stop_visit_id") Integer stop_visit_id, @RequestParam("address") String address,@RequestParam("handleJudge") Integer handleJudge,
-                      @RequestParam("rt") String rt, @RequestParam("visited_times") Integer visited_times, @RequestParam("inJudge") Integer inJudge, @RequestParam("mac") String mac) {
+                      @RequestParam("rt") String rt, @RequestParam("visited_times") Integer visited_times, @RequestParam("inJudge") Integer inJudge,
+                      @RequestParam("mac") String mac, @RequestParam("indoorname") String indoorname) {
         try {
             StopVisit c=stopvisitService.get(stop_visit_id);
             c.setAddress(address);
@@ -68,6 +69,7 @@ public class StopVisitController {
             c.setRt(rt);
             c.setMac(mac);
             c.setHandlejudge(handleJudge);
+            c.setIndoorname(indoorname);
             if(inJudge!=null){
                 c.setInjudge(inJudge);
             }
@@ -81,7 +83,7 @@ public class StopVisitController {
 
     @PostMapping("/addStopVisit")
     public Msg add(@RequestParam("address") String address, @RequestParam("in_time") String in_time, @RequestParam("left_time") String left_time,
-                   @RequestParam("handleJudge") Integer handleJudge,
+                   @RequestParam("handleJudge") Integer handleJudge, @RequestParam("indoorname") String indoorname,
                    @RequestParam("rt") String rt, @RequestParam("visited_times") Integer visited_times, @RequestParam("inJudge") Integer inJudge, @RequestParam("mac") String mac) {
         try {
             StopVisit c=new StopVisit();
@@ -99,6 +101,7 @@ public class StopVisitController {
             c.setRt(rt);
             c.setMac(mac);
             c.setInjudge(inJudge);
+            c.setIndoorname(indoorname);
             stopvisitService.add(c);
             return new Msg("新增操作成功");
         } catch (Exception e) {
@@ -115,9 +118,10 @@ public class StopVisitController {
             StopVisit u= new StopVisit();
             u.setHandlejudge(1);
             u.setStopVisitId(stop_visit_id);
+            u.setIndoorname(indoorname);
             stopvisitService.update(u);
             //关闭禁止区域的报警器（报警器类型是5）
-            List<Device> devices = deviceService.listbyAdress(address);
+            List<Device> devices = deviceService.listbyAdress(address,indoorname);
             for(Device d:devices){
                 System.out.println("设备的id："+d.getId());
                 System.out.println("设备操控");

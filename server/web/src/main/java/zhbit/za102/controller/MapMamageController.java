@@ -11,6 +11,27 @@ public class MapMamageController {
     @Autowired
     MapMamageService mapMamageService;
 
+    @GetMapping("/listMapMamageSearch")
+    public Msg listSearch(@RequestParam("staffdata") String staffdata,@RequestParam(value = "start",defaultValue = "1")int start,
+                          @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+        try {
+            return  mapMamageService.listSearch(staffdata, start, size);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Msg("查询失败", 401);
+        }
+    }
+
+    @GetMapping("/listMapMamageNoPage")
+    public Msg list()throws Exception {  //所有用户
+        try {
+            return new Msg(mapMamageService.list());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Msg("查询失败", 401);
+        }
+    }
+
     @GetMapping("/listMapMamage")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
                     @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户

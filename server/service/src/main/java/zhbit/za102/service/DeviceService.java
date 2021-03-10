@@ -89,9 +89,9 @@ public class DeviceService {
         deviceMapper.insertdevice(deviceid,devicetype,devicevalue,lasttime,ip,port,gentime,indoorname);
     }
 
-    public List<Device> listbyAdress(String address) {
+    public List<Device> listbyAdress(String address,String indoorname) {
         DeviceExample example = new DeviceExample();
-        example.createCriteria().andLocationEqualTo(address).andDevicetypeEqualTo("5");  //类型5为报警器
+        example.createCriteria().andLocationEqualTo(address).andDevicetypeEqualTo("5").andIndoornameEqualTo(indoorname);  //类型5为报警器
         return deviceMapper.selectByExample(example);
     }
 
