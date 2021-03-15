@@ -39,7 +39,7 @@ public class LocationController {
     }
 
     @GetMapping("/getDBlocationNotRepeat")
-    public Msg getDBlocation2(){  //所有用户
+    public Msg getDBlocation2(@RequestParam("indoorname")String indoorname){  //所有用户
         try {
             List<String> listmac=locationService.searchLocationMac(); //去重
             List<Location> listlocation = new ArrayList<>();
@@ -54,9 +54,9 @@ public class LocationController {
     }
 
     @GetMapping("/listByMac")
-    public Msg listByMac(@RequestParam("mac") String mac){  //所有用户
+    public Msg listByMac(@RequestParam("mac") String mac,@RequestParam("indoorname")String indoorname){  //所有用户
         try {
-            return new Msg(locationService.listByMac(mac));
+            return new Msg(locationService.listByMac(mac,indoorname));
         } catch (Exception e) {
             e.printStackTrace();
             return new Msg("查询失败", 401);

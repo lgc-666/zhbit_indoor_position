@@ -66,4 +66,11 @@ public class MapMamageService {
         PageInfo<map_mamage> page = new PageInfo<>(us);
         return new Msg(page);
     }
+
+    public List<map_mamage> listSearchByIndoorname(String staffdata) {
+        map_mamageExample example = new map_mamageExample();
+        example.createCriteria().andIndoornameEqualTo(staffdata);
+        example.setOrderByClause("id desc");
+        return mapMamageMapper.selectByExample(example);
+    }
 }

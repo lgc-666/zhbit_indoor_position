@@ -53,16 +53,19 @@ public class ClassDataController {
             Integer jmpOut = 0;
             Integer new_student = 0;
             Integer class_now_number  = 0;
-            List<ClassData> shop_dataList = classDataService.getMainData(address,dateTime,indoorname);
-            if (shop_dataList.size()==0) {    //return new Msg("当天无访问数据,可选择历史日期进行查看",401);
+            if(!indoorname.equals("")){
+                List<ClassData> shop_dataList = classDataService.getMainData(address,dateTime,indoorname);
+                if (shop_dataList.size()!=0) {    //return new Msg("当天无访问数据,可选择历史日期进行查看",401);
+                    System.out.println("第一行："+shop_dataList.get(0).getClassNowNumber());
+                    for (ClassData shop_data:shop_dataList) {
+                        in_class_number+=shop_data.getInClassNumber();
+                        new_student+=shop_data.getNewStudent();
+                        jmpOut+=shop_data.getJumpOut();
+                    }
+                    class_now_number = shop_dataList.get(0).getClassNowNumber();
+                }
             }
-                System.out.println("第一行："+shop_dataList.get(0).getClassNowNumber());
-            for (ClassData shop_data:shop_dataList) {
-                in_class_number+=shop_data.getInClassNumber();
-                new_student+=shop_data.getNewStudent();
-                jmpOut+=shop_data.getJumpOut();
-            }
-            class_now_number = shop_dataList.get(0).getClassNowNumber();
+
             Map<String,Integer> map=new HashMap<>();
             map.put("in_class_number",in_class_number);
             map.put("new_student",new_student);

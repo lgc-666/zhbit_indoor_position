@@ -55,9 +55,9 @@ public class LocationService {
         return new Msg(page);
     }
 
-    public List<Location> listByMac(String mac) {
+    public List<Location> listByMac(String mac,String indoorname) {
         LocationExample example = new LocationExample();
-        example.createCriteria().andMacEqualTo(mac);
+        example.createCriteria().andMacEqualTo(mac).andIndoornameEqualTo(indoorname);
         example.setOrderByClause("locationid");
         return locationMapper.selectByExample(example);
     }

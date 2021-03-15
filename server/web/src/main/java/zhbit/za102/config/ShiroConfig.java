@@ -153,6 +153,7 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/updateMapMamage", "perms[updateMapMamage]");
         filterChainDefinitionMap.put("/addMapMamage", "perms[addMapMamage]");
         filterChainDefinitionMap.put("/listMapMamageSearch", "perms[listMapMamageSearch]");
+        filterChainDefinitionMap.put("/listMapMamageSearchByIndoorname", "perms[listMapMamageSearchByIndoorname]");
 
         filterChainDefinitionMap.put("/updateStatus", "perms[updateStatus]");
         filterChainDefinitionMap.put("/doStopVisit", "perms[doStopVisit]");
