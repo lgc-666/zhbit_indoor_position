@@ -13,6 +13,7 @@ import zhbit.za102.bean.LocationExample;
 import zhbit.za102.bean.Msg;
 import zhbit.za102.dao.LocationMapper;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -62,11 +63,22 @@ public class LocationService {
         return locationMapper.selectByExample(example);
     }
 
-    public List<String> searchLocationMac(){
-        return locationMapper.searchLocationMac();
+    public List<Location> listByMac2(String mac, String indoorname, Date start, Date end) {
+        LocationExample example = new LocationExample();
+        example.createCriteria().andMacEqualTo(mac).andIndoornameEqualTo(indoorname).andBeatBetween(start,end);
+        example.setOrderByClause("beat");
+        return locationMapper.selectByExample(example);
     }
-    public Location searchLocationleatMac(String mac){
-        return locationMapper.searchLocationleatMac(mac);
+
+    public List<String> searchLocationMac(String indoorname){
+        return locationMapper.searchLocationMac(indoorname);
+    }
+    public List<Location> searchLocationleatMac(String mac,Date start, Date end){
+        //return locationMapper.searchLocationleatMac2(mac,date);
+        LocationExample example = new LocationExample();
+        example.createCriteria().andMacEqualTo(mac).andBeatBetween(start,end);
+        example.setOrderByClause("beat desc");
+        return locationMapper.selectByExample(example);
     }
 
 }

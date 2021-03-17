@@ -28,11 +28,15 @@
   </insert>
 
   <select id="searchLocationMac" resultType="java.lang.String" >
-    select DISTINCT mac from location
+    select DISTINCT mac from location where indoorname=#{indoorname}
   </select>
 
   <select id="searchLocationleatMac" resultType="zhbit.za102.bean.Location" >
     select * from location where mac=#{mac} ORDER BY beat desc LIMIT 1
+  </select>
+
+  <select id="searchLocationleatMac2" resultType="zhbit.za102.bean.Location" >
+    select * from location where mac=#{mac} and beat=#{dateTime} ORDER BY beat desc LIMIT 1
   </select>
 
 

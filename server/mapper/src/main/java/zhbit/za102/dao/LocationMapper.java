@@ -1,5 +1,6 @@
 package zhbit.za102.dao;
 
+import java.util.Date;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
@@ -29,9 +30,10 @@ public interface LocationMapper {
 
     int updateByPrimaryKey(Location record);
 
+    Location searchLocationleatMac2(@Param("mac") String mac,@Param("dateTime") Date dateTime);
     Location searchLocationleatMac(@Param("mac") String mac);
     String searchLocationX(@Param("mac") String mac);
     String searchLocationY(@Param("mac") String mac);
     void insertLocation(@Param("mac") String mac,@Param("address") String address,@Param("x") String x,@Param("y") String y,@Param("indoorname") String indoorname);
-    List<String> searchLocationMac();
+    List<String> searchLocationMac(@Param("indoorname") String indoorname);
 }
