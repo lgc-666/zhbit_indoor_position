@@ -283,7 +283,7 @@ public class DataProcessor implements CommandLineRunner {
 
                                                     timeCount = new Long((latest_time.getTime() - (Long) macMap.get("beat")) / (60 * 1000)).intValue();
                                                     //出现间隔（AP再次探测到的时间-上次在店心跳）大于5分钟,再进算进入区域量+1（离开5分钟后再进来相当于再次访问，而5分钟内连续访问的不算是再进）
-                                                    if (timeCount >= 5&&(Integer) macMap.get("inJudge") == 0){  //大于5分钟AP检测不到mac心跳视为之前人跑到了室外，然后再重新跑进来才被检测到
+                                                    if (timeCount >= 1&&(Integer) macMap.get("inJudge") == 0){  //大于1分钟AP检测不到mac心跳视为之前人跑到了室外，然后再重新跑进来才被检测到
                                                         //上次进店时间为上一次的first_in_time
                                                         macMap.put("last_in_time", (Long) macMap.get("in_time"));
                                                         macMap.put("in_time", latest_time);
@@ -305,7 +305,7 @@ public class DataProcessor implements CommandLineRunner {
                                             } else { //所在区域为禁区
                                                 macMap = dataUtil.getStopMacMap(mac, atAddress,indoorname);
                                                 timeCount = new Long((latest_time.getTime() - (Long) macMap.get("beat")) / (60 * 1000)).intValue();
-                                                if (timeCount >= 5&&(Integer) macMap.get("inJudge") == 0) {
+                                                if (timeCount >= 1&&(Integer) macMap.get("inJudge") == 0) {
                                                     macMap.put("in_time", latest_time);
                                                     macMap.put("visited_times", (Integer) macMap.get("visited_times") + 1);
                                                     in_class_number++;
@@ -370,7 +370,7 @@ public class DataProcessor implements CommandLineRunner {
     //此进程用于存储跳出量、动态当前客流量和小时客流量(异步执行进程，因为切换快给人感觉像同时进行一样)
     @Transactional
     @Async
-    @Scheduled(cron = "0/3 * * * * ?")
+    @Scheduled(cron = "0/1 * * * * ?")
     public void dataThread() {  //3秒一次
         //小时客流量
         Integer subHour_customer = 0;
@@ -393,7 +393,7 @@ public class DataProcessor implements CommandLineRunner {
                 //时间间隔
                 Integer countTime = new Long((latest_time.getTime() - (Long) subCustomerMap_2.get("beat")) / (60 * 1000)).intValue();
                 //大于5分钟没有心跳的店内客人
-                if (countTime >= 5 && (Integer) subCustomerMap_2.get("inJudge") == 1) {
+                if (countTime >= 1 && (Integer) subCustomerMap_2.get("inJudge") == 1) {
                     Long stayTime = ((Long) subCustomerMap_2.get("left_time") - (Long) subCustomerMap_2.get("in_time")) / 1000;
                     //if (stayTime < 50)  //离开时间（最后一次在店时间）-上次进店小于50秒（进来不到1分钟就走了）
                     //{
@@ -403,7 +403,7 @@ public class DataProcessor implements CommandLineRunner {
                     visitMapper.updateInjudge2(0,subCustomerMap_2.get("mac").toString(),subCustomerMap_2.get("address").toString(),subCustomerMap_2.get("indoorname").toString());
                     subCustomerMap_2.put("rt", stayTime.toString()); //停留时间
                 }
-                else if (countTime < 5 && (Integer) subCustomerMap_2.get("inJudge") == 1) { //人在室内
+                else if (countTime < 1 && (Integer) subCustomerMap_2.get("inJudge") == 1) { //人在室内
                     dynamic_customer = 1; //现存人数+1
                 }
                 subAddress = (String)subCustomerMap_2.get("address");
@@ -462,7 +462,7 @@ public class DataProcessor implements CommandLineRunner {
 
     @Transactional
     @Async
-    @Scheduled(cron = "0/5 * * * * ?")
+    @Scheduled(cron = "0/2 * * * * ?")
     public void dataThread2() {  //5秒一次
         //小时客流量
         Integer subHour_customer2 = 0;
@@ -485,7 +485,7 @@ public class DataProcessor implements CommandLineRunner {
                 //时间间隔
                 Integer countTime = new Long((latest_time.getTime() - (Long) subCustomerMap_2.get("beat")) / (60 * 1000)).intValue();
                 //大于5分钟没有心跳的店内客人
-                if (countTime >= 5 && (Integer) subCustomerMap_2.get("inJudge") == 1) {
+                if (countTime >= 1 && (Integer) subCustomerMap_2.get("inJudge") == 1) {
                     Long stayTime = ((Long) subCustomerMap_2.get("left_time") - (Long) subCustomerMap_2.get("in_time")) / 1000;
                     //if (stayTime < 50)  //离开时间（最后一次在店时间）-上次进店小于50秒（进来不到1分钟就走了）
                     //{
@@ -495,7 +495,7 @@ public class DataProcessor implements CommandLineRunner {
                     subCustomerMap_2.put("rt", stayTime.toString()); //停留时间
                     visitMapper.updateInjudge2(0,subCustomerMap_2.get("mac").toString(),subCustomerMap_2.get("address").toString(),subCustomerMap_2.get("indoorname").toString());
                 }
-                else if (countTime < 5 && (Integer) subCustomerMap_2.get("inJudge") == 1) { //人在室内
+                else if (countTime < 1 && (Integer) subCustomerMap_2.get("inJudge") == 1) { //人在室内
                     dynamic_customer2 = 1; //现存人数+1
                 }
                 subAddress2 = (String)subCustomerMap_2.get("address");
@@ -547,7 +547,7 @@ public class DataProcessor implements CommandLineRunner {
     //此进程用于存储用户信息和补充跳出量(3分钟存一次)--->禁止区域
     @Transactional
     @Async
-    @Scheduled(cron = "* 0/3 * * * ?")
+    @Scheduled(cron = "0/4 * * * * ?")
     public void saveDataThread2(){
         //普通区域
         Map<String,Object> subCustomerMap2 = redisUtil.hmget("visit");

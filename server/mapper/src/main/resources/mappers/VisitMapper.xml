@@ -42,7 +42,7 @@
 
 
   <select id="searchExtraJumpOut" resultType="java.lang.String">
-        select address from visit where (TIMESTAMPDIFF(MINUTE, left_time, CURRENT_TIMESTAMP))>5 and inJudge = 1
+        select address from visit where (TIMESTAMPDIFF(MINUTE, left_time, CURRENT_TIMESTAMP))>1 and inJudge = 1
   </select>
 
   <update id="updateInjudge">
@@ -51,7 +51,7 @@
         SET
         inJudge = 0
         WHERE
-        (TIMESTAMPDIFF(MINUTE, left_time, CURRENT_TIMESTAMP))>5 and inJudge = 1
+        (TIMESTAMPDIFF(MINUTE, left_time, CURRENT_TIMESTAMP))>1 and inJudge = 1
   </update>
 
   <update id="updateInjudge2">
