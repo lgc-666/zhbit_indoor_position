@@ -72,6 +72,7 @@
     select hour_in_class_number from class_data where id in (select id from (select * from class_data where adress=#{address} and indoorname = #{indoorname} ORDER BY updatetime desc LIMIT 1)as t)
   </select>
 
+
   <!--更新跳出量、动态当前客流量和小时客流量-->
   <update id="updateDataThread" >
         UPDATE
