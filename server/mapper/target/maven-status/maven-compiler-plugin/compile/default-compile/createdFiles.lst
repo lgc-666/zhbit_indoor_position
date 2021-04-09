@@ -1,0 +1,16 @@
+zhbit\za102\dao\UserMapper.class
+zhbit\za102\dao\UserRoleMapper.class
+zhbit\za102\dao\PermissionMapper.class
+zhbit\za102\dao\MachineMapper.class
+zhbit\za102\dao\RolePermissionMapper.class
+zhbit\za102\dao\ClassMapper.class
+zhbit\za102\dao\StopVisitMapper.class
+zhbit\za102\dao\VisitMapper.class
+zhbit\za102\dao\ClassDataMapper.class
+zhbit\za102\dao\HotMapper.class
+zhbit\za102\dao\LocationMapper.class
+zhbit\za102\dao\RoleMapper.class
+zhbit\za102\dao\RegisterApprovalMapper.class
+zhbit\za102\dao\map_mamageMapper.class
+zhbit\za102\dao\DeviceMapper.class
+zhbit\za102\dao\LogrecordMapper.class

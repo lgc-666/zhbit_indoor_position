@@ -603,6 +603,7 @@ public class DataProcessor implements CommandLineRunner {
     }
 
     //每3分钟读取一次区域的当前人数
+    @Transactional
     @Async
     @Scheduled(cron = "* 0/3 * * * ?")
     public void changeDevice() throws Exception {

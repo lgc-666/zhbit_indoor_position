@@ -104,6 +104,7 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/listClassNoPagePublic", "perms[listClassNoPagePublic]");
         filterChainDefinitionMap.put("/listClassNoPageStop", "perms[listClassNoPageStop]");
         filterChainDefinitionMap.put("/listClassNoPage", "perms[listClassNoPage]");
+        filterChainDefinitionMap.put("/listClassNoPage2", "perms[listClassNoPage2]");
         filterChainDefinitionMap.put("/listClass", "perms[listClass]");
         filterChainDefinitionMap.put("/deleteClass", "perms[deleteClass]");
         filterChainDefinitionMap.put("/updateClass", "perms[updateClass]");

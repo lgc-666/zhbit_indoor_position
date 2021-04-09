@@ -33,9 +33,18 @@ public class ClassController {
     }
 
     @GetMapping("/listClassNoPage")
-    public Msg list()throws Exception {  //所有用户
+    public Msg list(@RequestParam("indoorname") String indoorname)throws Exception {  //所有用户
         try {
-            return new Msg(classService.list());
+                return new Msg(classService.list3(indoorname));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Msg("查询失败", 401);
+        }
+    }
+    @GetMapping("/listClassNoPage2")
+    public Msg list2()throws Exception {  //所有用户
+        try {
+                return new Msg(classService.list());
         } catch (Exception e) {
             e.printStackTrace();
             return new Msg("查询失败", 401);
