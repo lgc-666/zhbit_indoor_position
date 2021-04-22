@@ -7,10 +7,14 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import zhbit.za102.Utils.RedisUtils;
 import zhbit.za102.bean.*;
 import zhbit.za102.dao.DeviceMapper;
 import zhbit.za102.dao.LogrecordMapper;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -18,6 +22,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 @Service
@@ -109,7 +114,7 @@ public class DeviceService {
     /**2、预先创建数据存放的位置，封装*/
     byte [] bbuf = new byte [1024];
     DatagramPacket dp = new DatagramPacket(bbuf,bbuf.length);
-    public void monitor(String id1) throws Exception
+    public void monitor() throws Exception
     {
 
         while(true) {
@@ -127,51 +132,69 @@ public class DeviceService {
                 String devicetype = mess1.split (",")[1];
                 String devicevalue = mess1.split (",")[2].trim();
                 String indoorname = mess1.split (",")[3].trim();  //新加的地图数据
-//                if(logrecordService.listbyId(id1).size()!=0){
-                String kvalue=logrecordService.listbyId(id1).get(0).getChangevalue(); //根据id从logrecord01表获取对应设备的状态值
-//                }
 
-                System.out.println("按钮传来的id："+id1+"---设备id："+deviceid);
-                System.out.println((kvalue.trim()).equals(devicevalue.trim()));
-                if(id1.equals(deviceid))   //按钮传来的id与设备id相同时才做设备控制操作
-                {
-                    System.out.println("同一个设备id");
-                    //判断是否有控制指令且控制指令不同于当前状态值
-                    if (kvalue.equals(devicevalue))   //若真实设备状态已经改变则退出该循环进行下一个
-                    {
-                        System.out.println("值比较1："+kvalue);
-                        System.out.println("硬件值："+devicevalue);
-                        System.out.println("退出");
-                        check(deviceid,devicetype,devicevalue,ip,port,indoorname);
-                        break;
-                    }
-                    else{
-                        System.out.println("值比较2："+kvalue);
-                        System.out.println("硬件值："+devicevalue);
-                         if (kvalue.equals("0"))
-                         {
-                          control_value = "SWITCH0";
-                         }
-                         else
-                         {
-                          control_value = "SWITCH1";
-                         }
-                         try {
-                             //2、提供数据，封装打包  ---将control_value值返回给指定ip地址客户端(ip是变化的，动态ip)
-                             byte[] bs = control_value.getBytes();
-                             DatagramPacket dp2 = new DatagramPacket(bs, bs.length,  InetAddress.getByName(ip), port);
-                             /** 3、使用send发送 */
-                             try {
-                                 ds.send(dp2);
-                                 check(deviceid,devicetype,devicevalue,ip,port,indoorname);
-                             } catch (IOException e) {
-                                 System.out.println("发送失败： ");
-                                 e.printStackTrace();
-                             }
-                           }
-                         catch (Exception e){
-                             System.out.println("Error:"+e);
-                          }
+
+            //思路：从session拿到存储将要操作设备的list，遍历list，若若真实设备状态已经改变则将完成操作的设备从list中删除
+                HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+                List<String> a = (List<String>) request.getSession().getAttribute("MachineList");
+                if(a.size()!=0 && a!=null){
+                    for(String id1:a){  //遍历列表中的设备id
+                        String kvalue=logrecordService.listbyId(id1).get(0).getChangevalue(); //根据id从logrecord01表获取对应设备的状态值
+                        System.out.println("按钮传来的id："+id1+"---设备id："+deviceid);
+                        System.out.println((kvalue.trim()).equals(devicevalue.trim()));
+
+                        if(id1.equals(deviceid))   //按钮传来的id与设备id相同时才做设备控制操作
+                        {
+                            System.out.println("同一个设备id");
+                            //判断是否有控制指令且控制指令不同于当前状态值
+                            if (kvalue.equals(devicevalue))   //若真实设备状态已经改变则退出该循环进行下一个
+                            {
+                                System.out.println("值比较1："+kvalue);
+                                System.out.println("硬件值："+devicevalue);
+                                System.out.println("退出");
+                                check(deviceid,devicetype,devicevalue,ip,port,indoorname);
+                                //删除session列表中的设备id
+                                Iterator<String> iterator = a.iterator();
+                                while (iterator.hasNext()) {
+                                    String next = iterator.next();
+                                    if (id1.equals(next)) {
+                                        iterator.remove();
+                                    }
+                                }
+                                request.getSession().setAttribute("MachineList",a);
+                                System.out.println("设备id列表："+a);
+                                //break;
+                            }
+                            else{
+                                System.out.println("值比较2："+kvalue);
+                                System.out.println("硬件值："+devicevalue);
+                                if (kvalue.equals("0"))
+                                {
+                                    control_value = id1+",SWITCH0";
+                                }
+                                else
+                                {
+                                    control_value = id1+",SWITCH1";
+                                }
+                                try {
+                                    //2、提供数据，封装打包  ---将control_value值返回给指定ip地址客户端(ip是变化的，动态ip)
+                                    byte[] bs = control_value.getBytes();
+                                    DatagramPacket dp2 = new DatagramPacket(bs, bs.length,  InetAddress.getByName(ip), port);
+                                    /** 3、使用send发送 */
+                                    try {
+                                        ds.send(dp2);
+                                        check(deviceid,devicetype,devicevalue,ip,port,indoorname);
+                                        //ds.close();
+                                    } catch (IOException e) {
+                                        System.out.println("发送失败： ");
+                                        e.printStackTrace();
+                                    }
+                                }
+                                catch (Exception e){
+                                    System.out.println("Error:"+e);
+                                }
+                            }
+                        }
                     }
                 }
           }

@@ -4,6 +4,7 @@ import ch.qos.logback.core.net.SyslogOutputStream;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.mysql.cj.x.protobuf.MysqlxExpr;
 import org.apache.ibatis.jdbc.Null;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -13,12 +14,16 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import redis.clients.jedis.Jedis;
 import zhbit.za102.Utils.DataUtil;
 import zhbit.za102.Utils.RedisUtils;
+import zhbit.za102.Utils.SerializeUtil;
 import zhbit.za102.bean.Class;
 import zhbit.za102.bean.ClassData;
 import zhbit.za102.bean.Device;
+import zhbit.za102.bean.MacSortByDate;
 import zhbit.za102.dao.*;
 import zhbit.za102.service.ClassDataService;
 import zhbit.za102.service.ClassService;
@@ -26,6 +31,7 @@ import zhbit.za102.service.DeviceService;
 import zhbit.za102.service.LogrecordService;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.sql.Timestamp;
@@ -123,6 +129,13 @@ public class DataProcessor implements CommandLineRunner {
             dataUtil.refreshMachineCache();
             dataUtil.initClassData();
             System.out.println("初始化完成");
+
+            //启动智能硬件设备信号接收
+            List<String> a = new ArrayList<>();
+            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+            request.getSession().setAttribute("MachineList",a);
+            deviceService.monitor();
+
             while (true) {
                 //synchronized关键字是用来控制线程同步的，就是在多线程的环境下，控制synchronized代码段不被多个线程同时执行
                 synchronized (this) {
@@ -174,8 +187,20 @@ public class DataProcessor implements CommandLineRunner {
                                     //筛选
                                     if (mac != null && mac.matches(macM) && rssi != null && rssi.toString().matches(rssiM) && !mac.startsWith("00:00") && rssi > (Integer) ((Map) redisUtil.hget("machineAP", machineId)).get("leastRssi")) {
                                         System.out.println("进来了！！");
+                                        Map<String,Object> machineMap = new HashMap<>();
+                                        //获取当前时间
+                                        Calendar d=Calendar.getInstance(TimeZone.getTimeZone("GMT:+08:00"));
+                                       //MacSortByDate macSortByDate = new MacSortByDate();
+                                       //macSortByDate.setRssi(rssi);
+                                       //macSortByDate.setTime(d.getTime());
+                                       //macSortByDate.setMachineId(machineId);
+                                        machineMap.put("rssi",rssi);
+                                        machineMap.put("time",d.getTime());
+                                        machineMap.put("machineId",machineId);
                                         //设置mac-machine-rssi缓存（key--项--值）：再次插入的缓存中当key、项相同时会把值覆盖掉（当人不断发生位移时，同一个AP收到同一个人的rssi信号每次都会不同的场景）。HSET过去只能设置一个键值对，如果需要一次设置多个，则必须使用HMSET（M表示多重）
-                                        redisUtil.hset(mac, machineId, rssi);
+                                        //序列化java对象，并储存到Redis
+                                        //byte[] serialize = SerializeUtil.serialize(macSortByDate);
+                                        redisUtil.hset(mac,machineId,machineMap);
                                     } else{
                                         System.out.println("继续循环");
                                         continue;
@@ -186,21 +211,24 @@ public class DataProcessor implements CommandLineRunner {
                                         //取mac缓存中rssi信号最强的前4个计算
                                         System.out.println("开始计算（x,y）");
                                         Map<String, Object> map = redisUtil.hmget(mac);  //由项返回多个键值对
-                                        List<Map.Entry<String, Integer>> list = new LinkedList(map.entrySet());//将map变成list
-
+                                        List<Map.Entry<String, Map<String, Object>>> list = new LinkedList(map.entrySet());//将map变成list,取出来的数据放在map中是无序的所以要给它排下序
                                         // 下面的也可以写成lambda表达式这种形式：Collections.sort(list, (o1, o2) -> o2.getValue().compareTo(o1.getValue()));
-                                        Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
+
+                                          Collections.sort(list, new Comparator<Map.Entry<String, Map<String, Object>>>() {
                                             @Override
-                                            public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
-                                                return o2.getValue().compareTo(o1.getValue()); // 这里改为根据value值进行降序排序(加个负号)，这里也可以改成根据key和value进行排序
+                                            public int compare(Map.Entry<String, Map<String, Object>> o1, Map.Entry<String, Map<String, Object>> o2) {
+                                                Long ob1 = (Long) o1.getValue().get("time");
+                                                Long ob2 = (Long) o2.getValue().get("time");
+                                                return ob2.compareTo(ob1); // 这里为降序排序，这里也可以改成根据key和value进行排序
                                             }
                                         });
 
-                                        System.out.println("取前四条数据,并存value");
+
+                                        System.out.println("取后四条数据,并存value");
                                         List<Map<String, Object>> aplist = new ArrayList<>();
-                                        for (Map.Entry<String, Integer> p : list.subList(0, 4)) {  //key：设备id，值：rssi
-                                            System.out.println(p.getKey() + " " + p.getValue());
-                                            aplist.add((Map) redisUtil.hget("machineAP", p.getKey()));//返回的是value
+                                        for (Map.Entry<String, Map<String, Object>> p : list.subList(0, 4)) {  //key：设备id，值：rssi
+                                            System.out.println(p.getKey() + "===============》 " + p.getValue().get("rssi"));
+                                            aplist.add((Map) redisUtil.hget("machineAP", p.getKey()));//返回的是value,取rssi
                                         }
                                         //进行4选3排列AP组合
                                         dataUtil.reSort(aplist, 3, 0, 0);
@@ -277,7 +305,7 @@ public class DataProcessor implements CommandLineRunner {
                                                     }
 
                                                     timeCount = new Long((latest_time.getTime() - (Long) macMap.get("beat")) / (60 * 1000)).intValue();
-                                                    //出现间隔（AP再次探测到的时间-上次在店心跳）大于5分钟,再进算进入区域量+1（离开5分钟后再进来相当于再次访问，而5分钟内连续访问的不算是再进）
+                                                    //出现间隔（AP再次探测到的时间-上次在店心跳）大于1分钟,再进算进入区域量+1（离开5分钟后再进来相当于再次访问，而1分钟内连续访问的不算是再进）
                                                     if (timeCount >= 1&&(Integer) macMap.get("inJudge") == 0){  //大于1分钟AP检测不到mac心跳视为之前人跑到了室外，然后再重新跑进来才被检测到
                                                         //上次进店时间为上一次的first_in_time
                                                         macMap.put("last_in_time", (Long) macMap.get("in_time"));
@@ -288,7 +316,7 @@ public class DataProcessor implements CommandLineRunner {
                                                         //visitMapper.updateInjudge2(0,mac,atAddress);
                                                     }
 
-                                                        //出现间隔小于5分钟视为一直在室内（为了方便处理在多个区域间频繁移动的人）
+                                                        //出现间隔小于1分钟视为一直在室内（为了方便处理在多个区域间频繁移动的人）
                                                     macMap.put("left_time", latest_time);
                                                     macMap.put("beat", latest_time);
                                                     macMap.put("inJudge", 1);
@@ -319,6 +347,11 @@ public class DataProcessor implements CommandLineRunner {
                                                 System.out.println("更新cache信息完成！");
                                             }
                                         }
+
+                                        //位置计算完毕清除mac缓存
+                                         // redisUtil.del(mac);
+                                        dataUtil.clearstu2();
+
                                     }
                                       else {
                                           System.out.println("不满足不同AP的4个rssi的条件");
@@ -621,7 +654,12 @@ public class DataProcessor implements CommandLineRunner {
                            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
                            String dt = df.format(new Date());//获取当前系统时间并格式化
                            logrecordService.addchange(d.getId(),"0",dt,d.getIndoorname());
-                           deviceService.monitor(d.getId());
+                           //deviceService.monitor(d.getId());
+                           //把要操作的设备id加入到session的list中
+                           HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+                           List<String> b =(List<String>) request.getSession().getAttribute("MachineList");
+                           b.add(d.getId());
+                           request.getSession().setAttribute("MachineList",b);
                        }
                    }
                }
@@ -633,7 +671,12 @@ public class DataProcessor implements CommandLineRunner {
                            String dt = df.format(new Date());//获取当前系统时间并格式化
                            System.out.println("写入设备控制状态");
                            logrecordService.addchange(d.getId(),"1",dt,d.getIndoorname());
-                           deviceService.monitor(d.getId());
+                           //deviceService.monitor(d.getId());
+                           //把要操作的设备id加入到session的list中
+                           HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+                           List<String> b =(List<String>) request.getSession().getAttribute("MachineList");
+                           b.add(d.getId());
+                           request.getSession().setAttribute("MachineList",b);
                        }
                    }
                }

@@ -2,6 +2,8 @@ package zhbit.za102.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import zhbit.za102.Utils.DataUtil;
 import zhbit.za102.Utils.RedisUtils;
 import zhbit.za102.bean.Device;
@@ -11,6 +13,7 @@ import zhbit.za102.service.DeviceService;
 import zhbit.za102.service.LogrecordService;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -18,6 +21,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 @RestController
 public class DeviceController {
@@ -122,7 +126,12 @@ public class DeviceController {
             String dt = df.format(new Date());//获取当前系统时间并格式化
             System.out.println("id-stataus-dt的值："+id+"-"+status+"-"+dt);
             logrecordService.addchange(id,status,dt,indoorname);
-            deviceService.monitor(id);
+            //deviceService.monitor(id);
+            //把要操作的设备id加入到session的list中
+            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+            List<String> b =(List<String>) request.getSession().getAttribute("MachineList");
+            b.add(id);
+            request.getSession().setAttribute("MachineList",b);
         } catch (Exception e) {
             e.printStackTrace();
         }

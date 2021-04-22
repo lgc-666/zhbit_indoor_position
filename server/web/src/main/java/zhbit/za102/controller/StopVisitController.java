@@ -2,6 +2,8 @@ package zhbit.za102.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import zhbit.za102.bean.Device;
 import zhbit.za102.bean.Msg;
 import zhbit.za102.bean.StopVisit;
@@ -10,6 +12,7 @@ import zhbit.za102.service.DeviceService;
 import zhbit.za102.service.LogrecordService;
 import zhbit.za102.service.StopVisitService;
 
+import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -129,7 +132,12 @@ public class StopVisitController {
                 String dt = df.format(new Date());//获取当前系统时间并格式化
                 System.out.println("id-stataus-dt的值："+d.getId()+"-"+dt);
                 logrecordService.addchange(d.getId(),"0",dt,indoorname);
-                deviceService.monitor(d.getId());
+                //deviceService.monitor(d.getId());
+                //把要操作的设备id加入到session的list中
+                HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+                List<String> b =(List<String>) request.getSession().getAttribute("MachineList");
+                b.add(d.getId());
+                request.getSession().setAttribute("MachineList",b);
             }
             return new Msg("操作成功");
         } catch (Exception e) {

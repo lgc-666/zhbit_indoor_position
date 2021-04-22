@@ -4,11 +4,14 @@ import Jama.Matrix;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import zhbit.za102.bean.*;
 import zhbit.za102.bean.Class;
 import zhbit.za102.service.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.net.SocketException;
 import java.sql.Timestamp;
 import java.text.ParseException;
@@ -39,7 +42,7 @@ public class DataUtil {
     Map<String,Object> macMap;
     Map<String,Object> submacMap;
 
-    List<Map<String,Object>> stu2=new ArrayList();
+    public List<Map<String,Object>> stu2=new ArrayList();
     public List<List<Map<String,Object>>> stu3=new ArrayList();
 
     double totalWeight = 0;
@@ -176,7 +179,12 @@ public class DataUtil {
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
                 String dt = df.format(new Date());//获取当前系统时间并格式化
                 logrecordService.addchange(d.getId(),"1",dt,indoorname);
-                deviceService.monitor(d.getId());
+                //deviceService.monitor(d.getId());
+                //把要操作的设备id加入到session的list中
+                HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+                List<String> b =(List<String>) request.getSession().getAttribute("MachineList");
+                b.add(d.getId());
+                request.getSession().setAttribute("MachineList",b);
             }
         }
         return true;
@@ -333,9 +341,19 @@ public class DataUtil {
                 if(!stu2.contains(shu.get(i))) {
                     stu2.add(shu.get(i));
                     reSort(shu, targ, has+1, i);
+                    //if(stu2.size()!=0){
                     stu2.remove(stu2.size()-1);  //删除最后一个元素
+                    //}
                 }
             }
+    }
+
+    public void clearstu2(){
+        //清空列表
+        stu2.clear();
+        stu3.clear();
+        return;
+
     }
 
     /**利用RSSI得到设备距AP的距离(单位：米)**/
@@ -350,7 +368,7 @@ public class DataUtil {
         double height = 5.0;  //高度补偿值
         rawDis = Math.pow(10, power);  //公式(pow是次方根)
         //返回AP到UE的距离d（空间的）
-        System.out.println(rawDis+"米");
+        //System.out.println(rawDis+"米");
         //return rawDis;
         if(rawDis<5.0){  //浮在空中的也算地面的
             rawDis=5.0;
@@ -372,45 +390,20 @@ public class DataUtil {
         double[] distanceArray = new double[3];
         for(int i = 0; i< 3; i++)  //3点定位
         {
-            distanceArray[i] = GetDisFromRSSI((Integer) redisUtil.hget(mac,apArray.get(i).get("machineId").toString()));
-            System.out.println("3点定位："+distanceArray[i]);
+            String id = apArray.get(i).get("machineId").toString();
+            Map<String,Object> map =(Map<String,Object>)redisUtil.hget(mac,id);
+            Integer rssivalue = (Integer) map.get("rssi");
+            System.out.println("3点定位用到的rssi："+rssivalue+"=========》用到的machineid："+id);
+            distanceArray[i] = GetDisFromRSSI(rssivalue);
         }
-
-        /**
-        //3台机器间的3个距离d1、d2、d3
-        double AP1X=0.0;
-        double AP2X=0.0;
-        double AP3X=0.0;
-        double AP1Y=0.0;
-        double AP2Y=0.0;
-        double AP3Y=0.0;
-        List<Machine> APs = machineService.list();
-        for(Machine c:APs){
-            if(c.getMachineid()==apArray.get(0).get("machineId").toString()){
-                AP1X=Double.valueOf(c.getX());
-                AP1Y=Double.valueOf(c.getY());
-            }
-            else if(c.getMachineid()==apArray.get(1).get("machineId").toString()){
-                AP2X=Double.valueOf(c.getX());
-                AP2Y=Double.valueOf(c.getY());
-            }
-            else (c.getMachineid()==apArray.get(2).get("machineId").toString()){
-                AP3X=Double.valueOf(c.getX());
-                AP3Y=Double.valueOf(c.getY());
-            }
-        }
-        double d1= Math.sqrt(Math.pow(AP2X-AP1X, 2) + Math.pow(AP2Y-AP1Y, 2));
-
-        **/
-
 
         //系数矩阵A初始化
         for (int i = 0; i<2; i++)
         {
                a_array[i][0] = 2 * ((Double.valueOf(apArray.get(i).get("x").toString())) -(Double.valueOf(apArray.get(2).get("x").toString())));
-                System.out.println("矩阵数组："+a_array[i][0]);
+                //System.out.println("矩阵数组："+a_array[i][0]);
                 a_array[i][1] = 2 * ((Double.valueOf(apArray.get(i).get("y").toString())) -(Double.valueOf(apArray.get(2).get("y").toString())));
-       }
+         }
 
         //矩阵b初始化
         for (int i = 0; i< 2; i++)
@@ -448,12 +441,12 @@ public class DataUtil {
         }
 
         weight=Double.valueOf(String.format("%.1f", weight));
-        System.out.println("weight："+weight);
+        //System.out.println("weight："+weight);
         totalWeight += weight;
-        System.out.println("totalWeight："+totalWeight);
+        //System.out.println("totalWeight："+totalWeight);
         point.put("x",Double.valueOf(String.format("%.1f", res[0][0]*weight)));
         point.put("y",Double.valueOf(String.format("%.1f", res[1][0]*weight)));
-        System.out.println("point："+point);
+        //System.out.println("point："+point);
         return point;
     }
 
@@ -483,7 +476,7 @@ public class DataUtil {
         System.out.println("原坐标X2："+x2+"原坐标y2："+y2);**/
         point.put("macx",x2);  //坐标以改为以原坐标做标准
         point.put("macy",y2);
-        System.out.println("加权后的point："+point);
+       // System.out.println("加权后的point："+point);
         totalWeight = 0;//一定要归0否则会一直叠加
         return  point;
     }
