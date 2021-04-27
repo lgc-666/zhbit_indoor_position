@@ -49,4 +49,5 @@ public interface ClassDataMapper {
     List<InCustomerPerHour> getInCustomerPerHour(@Param("address")String address, @Param("dateTime")String dateTime,@Param("indoorname")String indoorname);
     List<SumData> getSum(@Param("dateTime")String dateTime,@Param("indoorname")String indoorname);
 
+    Integer listdis();
 }

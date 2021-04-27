@@ -44,6 +44,11 @@ public class ClassDataService {
         return classDataMapper.selectByExample(example);
     }
 
+    //获取去重复记录
+    public Integer listdis() {
+        return classDataMapper.listdis();
+    }
+
     @Cacheable(key = "'list'+'-'+#start+'-'+#size")
     public Msg list(int start, int size) {
         PageHelper.startPage(start, size, "id desc");

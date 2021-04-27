@@ -32,12 +32,12 @@ import zhbit.za102.service.LogrecordService;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.Type;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
 
 @Component
 public class DataProcessor implements CommandLineRunner {
@@ -120,276 +120,16 @@ public class DataProcessor implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         try {
-            //监听器
-            ds = new DatagramSocket(PORT);
-            System.out.println("等待链接");
-            buf = new byte[1024];
-            dp = new DatagramPacket(buf, buf.length);
-            //初始化设备表区域数据表，将表数据放缓存中（特别注意初始化后只有4条，想要后续每小时插入4条进行数据统计，就要用到异步线程的定时操作）
-            dataUtil.refreshMachineCache();
-            dataUtil.initClassData();
-            System.out.println("初始化完成");
-
-            //启动智能硬件设备信号接收
-            List<String> a = new ArrayList<>();
-            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-            request.getSession().setAttribute("MachineList",a);
-            deviceService.monitor();
-
-            while (true) {
-                //synchronized关键字是用来控制线程同步的，就是在多线程的环境下，控制synchronized代码段不被多个线程同时执行
-                synchronized (this) {
-                    try {
-                        //获取wifi探针数据
-                        ds.receive(dp);
-                        strReceive = new String(dp.getData());
-                        System.out.println("接收到的值："+strReceive);
-                        //转成json对象取值
-                        jsonObject = JSON.parseObject(strReceive);
-                        if (jsonObject != null) {
-                            //把数据初步分析出来
-                            indoorname = jsonObject.getString("indoorname").trim();
-                            machineId = jsonObject.getString("Id");
-                            data = jsonObject.getString("Data");
-                            System.out.println("machineId："+machineId);
-                            System.out.println("设备id是否匹配格式要求："+machineId.matches(idM));
-                            if (data != null) {
-                                jsonArray = JSONArray.parseArray(data);
-                                System.out.println("jsonArray："+jsonArray);
-                            }
-                            else{
-                                System.out.println("继续循环");
-                                continue;
-                            }
-
-                            dataUtil.get(machineId);  //测试用
-                            //如果设备在后台管理系统没有被添加,则不接受处理
-                            if (machineId.matches(idM) && dataUtil.getmachineAP(machineId) != null) {
-                                System.out.println("更新设备beat");
-                                dataUtil.refreshMachineCacheBeat(machineId);
-                                System.out.println("进来进行处理");
-                                dataSize = jsonArray.size();/**分析各个mac的数据，拆分data值**/
-
-                                nowmachineid=machineId;
-                                nowindoorname=indoorname;//确保在一个地图
-
-                                System.out.println("nowmachineid："+nowmachineid);
-                                System.out.println("lastmachineid："+lastmachineid);
-                                if(!nowmachineid.equals(lastmachineid)) {   //判断4台均为不同的设备
-                                    APcount += 1;
-                                    System.out.println("APcount："+APcount);
-                                }
-                                for (int i = 0; i < dataSize; i++) {
-                                    jsonObjectData = jsonArray.getJSONObject(i);
-                                    mac = jsonObjectData.getString("mac").toString();
-                                    rssi = jsonObjectData.getInteger("rssi");
-                                    System.out.println("mac和rssi："+mac+"-"+rssi);
-                                    //筛选
-                                    if (mac != null && mac.matches(macM) && rssi != null && rssi.toString().matches(rssiM) && !mac.startsWith("00:00") && rssi > (Integer) ((Map) redisUtil.hget("machineAP", machineId)).get("leastRssi")) {
-                                        System.out.println("进来了！！");
-                                        Map<String,Object> machineMap = new HashMap<>();
-                                        //获取当前时间
-                                        Calendar d=Calendar.getInstance(TimeZone.getTimeZone("GMT:+08:00"));
-                                       //MacSortByDate macSortByDate = new MacSortByDate();
-                                       //macSortByDate.setRssi(rssi);
-                                       //macSortByDate.setTime(d.getTime());
-                                       //macSortByDate.setMachineId(machineId);
-                                        machineMap.put("rssi",rssi);
-                                        machineMap.put("time",d.getTime());
-                                        machineMap.put("machineId",machineId);
-                                        //设置mac-machine-rssi缓存（key--项--值）：再次插入的缓存中当key、项相同时会把值覆盖掉（当人不断发生位移时，同一个AP收到同一个人的rssi信号每次都会不同的场景）。HSET过去只能设置一个键值对，如果需要一次设置多个，则必须使用HMSET（M表示多重）
-                                        //序列化java对象，并储存到Redis
-                                        //byte[] serialize = SerializeUtil.serialize(macSortByDate);
-                                        redisUtil.hset(mac,machineId,machineMap);
-                                    } else{
-                                        System.out.println("继续循环");
-                                        continue;
-                                    }
-
-                                      if(APcount >3 && redisUtil.hmget(mac).size() > 3 && nowindoorname.equals(lastindoorname)) { //该mac至少有4个rssi了 ,AP>3或缓存中的键值对>3，且在同一个地图
-                                        /**开始计算（x,y）**/
-                                        //取mac缓存中rssi信号最强的前4个计算
-                                        System.out.println("开始计算（x,y）");
-                                        Map<String, Object> map = redisUtil.hmget(mac);  //由项返回多个键值对
-                                        List<Map.Entry<String, Map<String, Object>>> list = new LinkedList(map.entrySet());//将map变成list,取出来的数据放在map中是无序的所以要给它排下序
-                                        // 下面的也可以写成lambda表达式这种形式：Collections.sort(list, (o1, o2) -> o2.getValue().compareTo(o1.getValue()));
-
-                                          Collections.sort(list, new Comparator<Map.Entry<String, Map<String, Object>>>() {
-                                            @Override
-                                            public int compare(Map.Entry<String, Map<String, Object>> o1, Map.Entry<String, Map<String, Object>> o2) {
-                                                Long ob1 = (Long) o1.getValue().get("time");
-                                                Long ob2 = (Long) o2.getValue().get("time");
-                                                return ob2.compareTo(ob1); // 这里为降序排序，这里也可以改成根据key和value进行排序
-                                            }
-                                        });
-
-
-                                        System.out.println("取后四条数据,并存value");
-                                        List<Map<String, Object>> aplist = new ArrayList<>();
-                                        for (Map.Entry<String, Map<String, Object>> p : list.subList(0, 4)) {  //key：设备id，值：rssi
-                                            System.out.println(p.getKey() + "===============》 " + p.getValue().get("rssi"));
-                                            aplist.add((Map) redisUtil.hget("machineAP", p.getKey()));//返回的是value,取rssi
-                                        }
-                                        //进行4选3排列AP组合
-                                        dataUtil.reSort(aplist, 3, 0, 0);
-                                        List<List<Map<String, Object>>> sortResult = dataUtil.getStu3();
-                                        Double totalX = 0.0;
-                                        Double totalY = 0.0;
-                                        Map<String, Double> respoint = new HashMap<>();
-                                        Map<String, Integer> macpoint = new HashMap<>();
-                                        for (List<Map<String, Object>> sort : sortResult) { //[[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]]
-                                            respoint = dataUtil.CaculateByAPList(sort, mac);  //传[1, 2, 3]
-                                            totalX += respoint.get("x");
-                                            totalY += respoint.get("y");
-                                        }
-                                        macpoint = dataUtil.cpoint(totalX, totalY, atAddress);//传入加权后的坐标，输出平均值坐标
-                                        System.out.println("人的位置坐标"+macpoint);
-
-                                        //根据区域x、y的范围值，判断在哪个区域
-                                        atAddress = dataUtil.judgeClass(macpoint.get("macx"), macpoint.get("macy"),indoorname);
-                                        System.out.println("人所在区域："+atAddress);
-
-                                        //根据区域名判断是否为禁止区域
-                                        StopJudege = dataUtil.Stopjudge(atAddress,indoorname);
-                                        System.out.println("是否为禁止区域："+StopJudege);
-                                        //当前时间戳
-                                        latest_time = new Timestamp(System.currentTimeMillis());
-
-                                        lastx=locationMapper.searchLocationX(mac);
-                                        lasty=locationMapper.searchLocationY(mac);
-                                        nowx=macpoint.get("macx").toString();
-                                        nowy=macpoint.get("macy").toString();
-                                        if(lastx!=null&&lasty!=null){
-                                            //当与上一个位置不同时,将人的位置存到数据库
-                                            if(lastx.equals(nowx)&&lasty.equals(nowy)){
-                                                System.out.println("在同一位置上没有移动");
-                                            }
-                                            else {
-                                                locationMapper.insertLocation(mac,atAddress,nowx,nowy,indoorname);
-                                            }
-                                        }
-                                        else {
-                                            locationMapper.insertLocation(mac,atAddress,nowx,nowy,indoorname);
-                                        }
-
-
-                                        /**先判断是否存在，注意：同一个区域的同一个mac用更新方式，否则插入**/
-                                        //不存在的情况
-                                        if (!dataUtil.checkExist(mac, atAddress,indoorname)) {
-                                            //新客人
-                                            System.out.println("新客人");
-                                            if (StopJudege == 0) {
-                                                //加入新客人
-                                                dataUtil.insertMac(atAddress, 1, 1, mac, rssi,indoorname);
-                                            } else {
-                                                dataUtil.insertStopMac(atAddress, 1, 1, mac, rssi,indoorname);
-                                            }
-                                            //加入缓存
-                                            new_student++;
-                                            in_class_number++;
-                                            hour_in_class_number++;
-                                        }
-                                        //mac在普通区域或禁区已存在的情况
-                                        else {
-                                            System.out.println("跑这里去");
-                                            //更新的是人所在区域的mac信息
-                                            if (StopJudege == 0) { //所在区域为普通区域
-                                                macMap = dataUtil.getMacMap(mac, atAddress,indoorname);  //获取缓存进行处理，没有就从数据库中同步进来
-                                                if(macMap!=null){
-                                                    Iterator<Map.Entry<String, Object>> entries = macMap.entrySet().iterator();
-                                                    while(entries.hasNext()){
-                                                        Map.Entry<String, Object> entry = entries.next();
-                                                        String key = entry.getKey();
-                                                        Object value = entry.getValue();
-                                                        System.out.println("key和value是："+key+":"+value);
-                                                    }
-
-                                                    timeCount = new Long((latest_time.getTime() - (Long) macMap.get("beat")) / (60 * 1000)).intValue();
-                                                    //出现间隔（AP再次探测到的时间-上次在店心跳）大于1分钟,再进算进入区域量+1（离开5分钟后再进来相当于再次访问，而1分钟内连续访问的不算是再进）
-                                                    if (timeCount >= 1&&(Integer) macMap.get("inJudge") == 0){  //大于1分钟AP检测不到mac心跳视为之前人跑到了室外，然后再重新跑进来才被检测到
-                                                        //上次进店时间为上一次的first_in_time
-                                                        macMap.put("last_in_time", (Long) macMap.get("in_time"));
-                                                        macMap.put("in_time", latest_time);
-                                                        macMap.put("visited_times", (Integer) macMap.get("visited_times") + 1);
-                                                        in_class_number++;
-                                                        hour_in_class_number++;
-                                                        //visitMapper.updateInjudge2(0,mac,atAddress);
-                                                    }
-
-                                                        //出现间隔小于1分钟视为一直在室内（为了方便处理在多个区域间频繁移动的人）
-                                                    macMap.put("left_time", latest_time);
-                                                    macMap.put("beat", latest_time);
-                                                    macMap.put("inJudge", 1);
-                                                    macMap.put("rssi", rssi);
-                                                    //更新cache信息
-                                                    dataUtil.refreshMacCache(mac, atAddress,macMap,indoorname);
-                                                    visitMapper.updateInjudge2(1,mac,atAddress,indoorname);
-                                                }
-
-                                            } else { //所在区域为禁区
-                                                macMap = dataUtil.getStopMacMap(mac, atAddress,indoorname);
-                                                timeCount = new Long((latest_time.getTime() - (Long) macMap.get("beat")) / (60 * 1000)).intValue();
-                                                if (timeCount >= 1&&(Integer) macMap.get("inJudge") == 0) {
-                                                    macMap.put("in_time", latest_time);
-                                                    macMap.put("visited_times", (Integer) macMap.get("visited_times") + 1);
-                                                    in_class_number++;
-                                                    hour_in_class_number++;
-                                                    //stopVisitMapper.updateInjudge2(0,mac,atAddress);  //将缓存数据更新到数据库中
-                                                }
-                                                macMap.put("handleJudge", 0);
-                                                macMap.put("left_time", latest_time); //离开时间等价于最后一次在店时间latest_in_time
-                                                macMap.put("beat", latest_time);
-                                                macMap.put("inJudge", 1);
-                                                macMap.put("rssi", rssi);
-                                                //更新cache信息
-                                                dataUtil.refreshStopMacCache(mac,atAddress, macMap,indoorname);
-                                                stopVisitMapper.updateInjudge2(1,mac,atAddress,indoorname);
-                                                System.out.println("更新cache信息完成！");
-                                            }
-                                        }
-
-                                        //位置计算完毕清除mac缓存
-                                         // redisUtil.del(mac);
-                                        dataUtil.clearstu2();
-
-                                    }
-                                      else {
-                                          System.out.println("不满足不同AP的4个rssi的条件");
-                                          continue;  //继续循环，跳过本次循环体中余下尚未执行的语句，立即进行下一次的循环条件
-                                      }
-                                }
-                                //这里更新
-                                if(atAddress!=null){
-                                    if (new_student != 0 || in_class_number != 0 || hour_in_class_number != 0 ) {
-                                        classDataMapper.updateClassData(atAddress, new_student, in_class_number, hour_in_class_number,indoorname);//倒序排序更新最新的那条
-                                    }
-                                }
-
-                                System.out.println("更新统计数据值完成");
-                                new_student = 0;
-                                in_class_number = 0;
-                                hour_in_class_number = 0;
-
-                                lastmachineid=nowmachineid;
-                                lastindoorname=nowindoorname;
-
-                                if(APcount>3){
-                                    APcount = 0; //记得将数据清0，否则会一直累加
-                                }
-                            }
-                            else{
-                                System.out.println("设备在后台没添加");
-                            }
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
+            Socket1 s1=new Socket1();
+            Socket2 s2=new Socket2();
+            Thread t1=new Thread(s1);
+            Thread t2=new Thread(s2);
+            t1.start();
+            t2.start();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            ds.close();
+            //ds.close();
             System.out.println("退出while循环.................");
         }
         System.out.println("退出while循环.................");
@@ -431,7 +171,9 @@ public class DataProcessor implements CommandLineRunner {
         //先算总的后面遍历再减去自己的
         for (Class b : a) {
             //当前小时进店量总和
-            subHour_customer_sum = subHour_customer_sum + classDataMapper.searchNowHour_in_customer_number(b.getAdress(), b.getIndoorname());
+            if(classDataMapper.searchNowHour_in_customer_number(b.getAdress(), b.getIndoorname())!=null){
+                subHour_customer_sum = subHour_customer_sum + classDataMapper.searchNowHour_in_customer_number(b.getAdress(), b.getIndoorname());
+            }
         }
 
         if (subCustomerMap != null) {
@@ -484,9 +226,11 @@ public class DataProcessor implements CommandLineRunner {
                     subCountExtraMap = (Map) subCustomerMap_1.getValue();
                     System.out.println("步骤3");
                     //查询当前小时进店量
-                    Integer subHour_customer_this = classDataMapper.searchNowHour_in_customer_number(subAddress, subIndoorname);
-                    subHour_customer = subHour_customer_sum - subHour_customer_this;
-                    System.out.println("作差后存值：" + subHour_customer);
+                    if(classDataMapper.searchNowHour_in_customer_number(subAddress, subIndoorname)!=null){
+                        Integer subHour_customer_this = classDataMapper.searchNowHour_in_customer_number(subAddress, subIndoorname);
+                        subHour_customer = subHour_customer_sum - subHour_customer_this;
+                        System.out.println("作差后存值：" + subHour_customer);
+                    }
                     if (subHour_customer!=null||subCountExtraMap.get("dynamic_customer") != 0 || subCountExtraMap.get("jumpOut_customer") != 0)
                         classDataMapper.updateDataThread(subAddress, subCountExtraMap.get("dynamic_customer"), subCountExtraMap.get("jumpOut_customer"), subHour_customer, subIndoorname);
                 }
@@ -539,7 +283,10 @@ public class DataProcessor implements CommandLineRunner {
                 subCountExtraMap2 = (Map) subCustomerMap_1.getValue();
                 //查询当前小时进店量
                 //subHour_customer2 = classDataMapper.searchNowHour_in_customer_number(subAddress2,subIndoorname2);
-                Integer subHour_customer_this = classDataMapper.searchNowHour_in_customer_number(subAddress2, subIndoorname2);
+                Integer subHour_customer_this = 0;
+                if(classDataMapper.searchNowHour_in_customer_number(subAddress2, subIndoorname2)!=null){
+                    subHour_customer_this = classDataMapper.searchNowHour_in_customer_number(subAddress2, subIndoorname2);
+                }
                 subHour_customer2 = subHour_customer_sum - subHour_customer_this;
                 //如果当前店面人流量大于小时进店量, 则小时客流量等于当前店面人流量
                 // if (subCountExtraMap2.get("dynamic_customer")>subHour_customer2)
@@ -577,7 +324,7 @@ public class DataProcessor implements CommandLineRunner {
         dataUtil.insertClassData();
     }
 
-    //此进程用于存储用户信息和补充跳出量(3分钟存一次)--->禁止区域
+    //此进程用于存储用户信息和补充跳出量(5秒存一次)--->禁止区域
     @Transactional
     @Async
     @Scheduled(cron = "0/5 * * * * ?")
@@ -638,51 +385,379 @@ public class DataProcessor implements CommandLineRunner {
     //每3分钟读取一次区域的当前人数
     @Transactional
     @Async
-    @Scheduled(cron = "* 0/3 * * * ?")
+    @Scheduled(cron = "* 0/1 * * * ?")
     public void changeDevice() throws Exception {
-           System.out.println("自动关灯");
+           System.out.println("自动灯开关");
            List<ClassData> classData=classDataService.list();
+           Integer count = classDataService.listdis();
            //取最新的前4条处理
-           for(ClassData c:classData.subList(0, 4)){
-               System.out.println(c.getAdress()+"当前人数："+c.getClassNowNumber());
-               if(c.getClassNowNumber().toString()!="0"){  //该区域当前人数为0则关灯
-                   System.out.println("走这");
+           if(classData!=null){
+               //for(ClassData c:classData.subList(0, 4)){
+               List<String> g = new ArrayList<>();
+               for(ClassData c:classData.subList(0, count)){
+                   System.out.println(c.getAdress()+"当前人数："+c.getClassNowNumber());
                    List<Device> devices = deviceService.listbyAdressLight(c.getAdress(),c.getIndoorname());
-                   if(devices.size()!=0){
-                       for(Device d:devices){
-                           System.out.println("开始循环："+d.getId());
-                           SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
-                           String dt = df.format(new Date());//获取当前系统时间并格式化
-                           logrecordService.addchange(d.getId(),"0",dt,d.getIndoorname());
-                           //deviceService.monitor(d.getId());
-                           //把要操作的设备id加入到session的list中
-                           HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-                           List<String> b =(List<String>) request.getSession().getAttribute("MachineList");
-                           b.add(d.getId());
-                           request.getSession().setAttribute("MachineList",b);
+
+                   if(c.getClassNowNumber().toString().equals("0")){  //该区域当前人数为0则关灯
+                       System.out.println("走这："+c.getClassNowNumber().toString());
+                       if(devices.size()!=0){ //如果该区域有设备就操作
+                           //for(Device d:devices){
+                           for(int i=0;i<devices.size();i++){
+                               if(logrecordService.listbyId(devices.get(i).getId())!=null&&logrecordService.listbyId(devices.get(i).getId()).size()!=0){
+                                   String kvalue = deviceService.listbyId2(devices.get(i).getId()).get(0).getDevicevalue(); //根据id从device01表获取对应设备最新的当前状态值
+                                   //先检验状态是否一致，再进行操作记录插入，防止大量数据插入
+                                   if("0".equals(kvalue)){
+                                       System.out.println("要操作的状态与当前状态一致，不插入操作记录！！！");
+                                   }
+                                   else {
+                                       SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+                                       String dt = df.format(new Date());//获取当前系统时间并格式化
+                                       logrecordService.addchange(devices.get(i).getId(),"0",dt,devices.get(i).getIndoorname());
+                                   }
+                               }
+                               else{
+                                   SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+                                   String dt = df.format(new Date());//获取当前系统时间并格式化
+                                   logrecordService.addchange(devices.get(i).getId(),"0",dt,devices.get(i).getIndoorname());
+                               }
+                           }
+                       }
+                   }
+                   else{ //该区域当前人数非0则开灯
+                       if(devices.size()!=0){
+                           for(int i=0;i<devices.size();i++){
+                               if(logrecordService.listbyId(devices.get(i).getId())!=null&&logrecordService.listbyId(devices.get(i).getId()).size()!=0) {
+                                   String kvalue = deviceService.listbyId2(devices.get(i).getId()).get(0).getDevicevalue(); //根据id从device01表获取对应设备最新的当前状态值
+                                   //先检验状态是否一致，再进行操作记录插入，防止大量数据插入
+                                   if ("1".equals(kvalue)) {
+                                       System.out.println("要操作的状态与当前状态一致，不插入操作记录！！！");
+                                   } else {
+                                       SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+                                       String dt = df.format(new Date());//获取当前系统时间并格式化
+                                       System.out.println("写入设备控制状态");
+                                       logrecordService.addchange(devices.get(i).getId(), "1", dt, devices.get(i).getIndoorname());
+                                   }
+                               }
+                               else{
+                                   System.out.println("初始化");
+                                   SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+                                   String dt = df.format(new Date());//获取当前系统时间并格式化
+                                   logrecordService.addchange(devices.get(i).getId(), "1", dt, devices.get(i).getIndoorname());
+                               }
+                           }
                        }
                    }
                }
-               else{ //该区域当前人数非0则开灯
-                   List<Device> devices = deviceService.listbyAdressLight(c.getAdress(),c.getIndoorname());
-                   if(devices.size()!=0){
-                       for(Device d:devices){
-                           SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
-                           String dt = df.format(new Date());//获取当前系统时间并格式化
-                           System.out.println("写入设备控制状态");
-                           logrecordService.addchange(d.getId(),"1",dt,d.getIndoorname());
-                           //deviceService.monitor(d.getId());
-                           //把要操作的设备id加入到session的list中
-                           HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-                           List<String> b =(List<String>) request.getSession().getAttribute("MachineList");
-                           b.add(d.getId());
-                           request.getSession().setAttribute("MachineList",b);
-                       }
-                   }
+               List<Device> devices2 = deviceService.list();
+               for(Device d:devices2){
+                   //把所有要操作的设备id加入到redis的list中
+                   g.add(d.getId());
                }
+               System.out.println("叠加后的设备列表："+g);
+               redisUtil.del("MachineList");
+               redisUtil.lSet("MachineList",g);
+               System.out.println("取redis中的值："+redisUtil.lGet("MachineList",0,-1)+"====>类型："+ redisUtil.lGet("MachineList",0,-1).getClass().toString());
            }
            return;
     }
+
+
+
+    class Socket1 implements Runnable
+    {
+        public void run()
+        {
+            try
+            {
+                //启动智能硬件设备信号接收
+                deviceService.monitor();
+            }
+            catch(Exception e)
+            {
+                System.out.println("Error");
+            }
+        }
+    }
+
+    class Socket2 implements Runnable
+    {
+        public void run()
+        {
+            try
+            {
+                //监听器
+                ds = new DatagramSocket(PORT);
+                System.out.println("等待链接");
+                buf = new byte[1024];
+                dp = new DatagramPacket(buf, buf.length);
+                //初始化设备表区域数据表，将表数据放缓存中（特别注意初始化后只有4条，想要后续每小时插入4条进行数据统计，就要用到异步线程的定时操作）
+                dataUtil.refreshMachineCache();
+                dataUtil.initClassData();
+                System.out.println("初始化完成");
+
+                //启动智能硬件设备信号接收
+                //deviceService.monitor();
+
+                while (true) {
+                    //synchronized关键字是用来控制线程同步的，就是在多线程的环境下，控制synchronized代码段不被多个线程同时执行
+                    synchronized (this) {
+                        try {
+                            //获取wifi探针数据
+                            ds.receive(dp);
+                            strReceive = new String(dp.getData());
+                            System.out.println("接收到的值："+strReceive);
+                            //转成json对象取值
+                            jsonObject = JSON.parseObject(strReceive);
+                            if (jsonObject != null) {
+                                //把数据初步分析出来
+                                indoorname = jsonObject.getString("indoorname").trim();
+                                machineId = jsonObject.getString("Id");
+                                data = jsonObject.getString("Data");
+                                System.out.println("machineId："+machineId);
+                                System.out.println("设备id是否匹配格式要求："+machineId.matches(idM));
+                                if (data != null) {
+                                    jsonArray = JSONArray.parseArray(data);
+                                    System.out.println("jsonArray："+jsonArray);
+                                }
+                                else{
+                                    System.out.println("继续循环");
+                                    continue;
+                                }
+
+                                dataUtil.get(machineId);  //测试用
+                                //如果设备在后台管理系统没有被添加,则不接受处理
+                                if (machineId.matches(idM) && dataUtil.getmachineAP(machineId) != null) {
+                                    System.out.println("更新设备beat");
+                                    dataUtil.refreshMachineCacheBeat(machineId);
+                                    System.out.println("进来进行处理");
+                                    dataSize = jsonArray.size();/**分析各个mac的数据，拆分data值**/
+
+                                    nowmachineid=machineId;
+                                    nowindoorname=indoorname;//确保在一个地图
+
+                                    System.out.println("nowmachineid："+nowmachineid);
+                                    System.out.println("lastmachineid："+lastmachineid);
+                                    if(!nowmachineid.equals(lastmachineid)) {   //判断4台均为不同的设备
+                                        APcount += 1;
+                                        System.out.println("APcount："+APcount);
+                                    }
+                                    for (int i = 0; i < dataSize; i++) {
+                                        jsonObjectData = jsonArray.getJSONObject(i);
+                                        mac = jsonObjectData.getString("mac").toString();
+                                        rssi = jsonObjectData.getInteger("rssi");
+                                        System.out.println("mac和rssi："+mac+"-"+rssi);
+                                        //筛选
+                                        if (mac != null && mac.matches(macM) && rssi != null && rssi.toString().matches(rssiM) && !mac.startsWith("00:00") && rssi > (Integer) ((Map) redisUtil.hget("machineAP", machineId)).get("leastRssi")) {
+                                            System.out.println("进来了！！");
+                                            Map<String,Object> machineMap = new HashMap<>();
+                                            //获取当前时间
+                                            Calendar d=Calendar.getInstance(TimeZone.getTimeZone("GMT:+08:00"));
+                                            //MacSortByDate macSortByDate = new MacSortByDate();
+                                            //macSortByDate.setRssi(rssi);
+                                            //macSortByDate.setTime(d.getTime());
+                                            //macSortByDate.setMachineId(machineId);
+                                            machineMap.put("rssi",rssi);
+                                            machineMap.put("time",d.getTime());
+                                            machineMap.put("machineId",machineId);
+                                            //设置mac-machine-rssi缓存（key--项--值）：再次插入的缓存中当key、项相同时会把值覆盖掉（当人不断发生位移时，同一个AP收到同一个人的rssi信号每次都会不同的场景）。HSET过去只能设置一个键值对，如果需要一次设置多个，则必须使用HMSET（M表示多重）
+                                            //序列化java对象，并储存到Redis
+                                            //byte[] serialize = SerializeUtil.serialize(macSortByDate);
+                                            redisUtil.hset(mac,machineId,machineMap);
+                                        } else{
+                                            System.out.println("继续循环");
+                                            continue;
+                                        }
+
+                                        if(APcount >3 && redisUtil.hmget(mac).size() > 3 && nowindoorname.equals(lastindoorname)) { //该mac至少有4个rssi了 ,AP>3或缓存中的键值对>3，且在同一个地图
+                                            /**开始计算（x,y）**/
+                                            //取mac缓存中rssi信号最强的前4个计算
+                                            System.out.println("开始计算（x,y）");
+                                            Map<String, Object> map = redisUtil.hmget(mac);  //由项返回多个键值对
+                                            List<Map.Entry<String, Map<String, Object>>> list = new LinkedList(map.entrySet());//将map变成list,取出来的数据放在map中是无序的所以要给它排下序
+                                            // 下面的也可以写成lambda表达式这种形式：Collections.sort(list, (o1, o2) -> o2.getValue().compareTo(o1.getValue()));
+
+                                            Collections.sort(list, new Comparator<Map.Entry<String, Map<String, Object>>>() {
+                                                @Override
+                                                public int compare(Map.Entry<String, Map<String, Object>> o1, Map.Entry<String, Map<String, Object>> o2) {
+                                                    Long ob1 = (Long) o1.getValue().get("time");
+                                                    Long ob2 = (Long) o2.getValue().get("time");
+                                                    return ob2.compareTo(ob1); // 这里为降序排序，这里也可以改成根据key和value进行排序
+                                                }
+                                            });
+
+
+                                            System.out.println("取后四条数据,并存value");
+                                            List<Map<String, Object>> aplist = new ArrayList<>();
+                                            for (Map.Entry<String, Map<String, Object>> p : list.subList(0, 4)) {  //key：设备id，值：rssi
+                                                System.out.println(p.getKey() + "===============》 " + p.getValue().get("rssi"));
+                                                aplist.add((Map) redisUtil.hget("machineAP", p.getKey()));//返回的是value,取rssi
+                                            }
+                                            //进行4选3排列AP组合
+                                            dataUtil.reSort(aplist, 3, 0, 0);
+                                            List<List<Map<String, Object>>> sortResult = dataUtil.getStu3();
+                                            Double totalX = 0.0;
+                                            Double totalY = 0.0;
+                                            Map<String, Double> respoint = new HashMap<>();
+                                            Map<String, Integer> macpoint = new HashMap<>();
+                                            for (List<Map<String, Object>> sort : sortResult) { //[[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]]
+                                                respoint = dataUtil.CaculateByAPList(sort, mac);  //传[1, 2, 3]
+                                                totalX += respoint.get("x");
+                                                totalY += respoint.get("y");
+                                            }
+                                            macpoint = dataUtil.cpoint(totalX, totalY, atAddress);//传入加权后的坐标，输出平均值坐标
+                                            System.out.println("人的位置坐标"+macpoint);
+
+                                            //根据区域x、y的范围值，判断在哪个区域
+                                            atAddress = dataUtil.judgeClass(macpoint.get("macx"), macpoint.get("macy"),indoorname);
+                                            System.out.println("人所在区域："+atAddress);
+
+                                            //根据区域名判断是否为禁止区域
+                                            StopJudege = dataUtil.Stopjudge(atAddress,indoorname);
+                                            System.out.println("是否为禁止区域："+StopJudege);
+                                            //当前时间戳
+                                            latest_time = new Timestamp(System.currentTimeMillis());
+
+                                            lastx=locationMapper.searchLocationX(mac);
+                                            lasty=locationMapper.searchLocationY(mac);
+                                            nowx=macpoint.get("macx").toString();
+                                            nowy=macpoint.get("macy").toString();
+                                            if(lastx!=null&&lasty!=null){
+                                                //当与上一个位置不同时,将人的位置存到数据库
+                                                if(lastx.equals(nowx)&&lasty.equals(nowy)){
+                                                    System.out.println("在同一位置上没有移动");
+                                                }
+                                                else {
+                                                    locationMapper.insertLocation(mac,atAddress,nowx,nowy,indoorname);
+                                                }
+                                            }
+                                            else {
+                                                locationMapper.insertLocation(mac,atAddress,nowx,nowy,indoorname);
+                                            }
+
+
+                                            /**先判断是否存在，注意：同一个区域的同一个mac用更新方式，否则插入**/
+                                            //不存在的情况
+                                            if (!dataUtil.checkExist(mac, atAddress,indoorname)) {
+                                                //新客人
+                                                System.out.println("新客人");
+                                                if (StopJudege == 0) {
+                                                    //加入新客人
+                                                    dataUtil.insertMac(atAddress, 1, 1, mac, rssi,indoorname);
+                                                } else {
+                                                    dataUtil.insertStopMac(atAddress, 1, 1, mac, rssi,indoorname);
+                                                }
+                                                //加入缓存
+                                                new_student++;
+                                                in_class_number++;
+                                                hour_in_class_number++;
+                                            }
+                                            //mac在普通区域或禁区已存在的情况
+                                            else {
+                                                System.out.println("跑这里去");
+                                                //更新的是人所在区域的mac信息
+                                                if (StopJudege == 0) { //所在区域为普通区域
+                                                    macMap = dataUtil.getMacMap(mac, atAddress,indoorname);  //获取缓存进行处理，没有就从数据库中同步进来
+                                                    if(macMap!=null){
+                                                        Iterator<Map.Entry<String, Object>> entries = macMap.entrySet().iterator();
+                                                        while(entries.hasNext()){
+                                                            Map.Entry<String, Object> entry = entries.next();
+                                                            String key = entry.getKey();
+                                                            Object value = entry.getValue();
+                                                            System.out.println("key和value是："+key+":"+value);
+                                                        }
+
+                                                        timeCount = new Long((latest_time.getTime() - (Long) macMap.get("beat")) / (60 * 1000)).intValue();
+                                                        //出现间隔（AP再次探测到的时间-上次在店心跳）大于1分钟,再进算进入区域量+1（离开5分钟后再进来相当于再次访问，而1分钟内连续访问的不算是再进）
+                                                        if (timeCount >= 1&&(Integer) macMap.get("inJudge") == 0){  //大于1分钟AP检测不到mac心跳视为之前人跑到了室外，然后再重新跑进来才被检测到
+                                                            //上次进店时间为上一次的first_in_time
+                                                            macMap.put("last_in_time", (Long) macMap.get("in_time"));
+                                                            macMap.put("in_time", latest_time);
+                                                            macMap.put("visited_times", (Integer) macMap.get("visited_times") + 1);
+                                                            in_class_number++;
+                                                            hour_in_class_number++;
+                                                            //visitMapper.updateInjudge2(0,mac,atAddress);
+                                                        }
+
+                                                        //出现间隔小于1分钟视为一直在室内（为了方便处理在多个区域间频繁移动的人）
+                                                        macMap.put("left_time", latest_time);
+                                                        macMap.put("beat", latest_time);
+                                                        macMap.put("inJudge", 1);
+                                                        macMap.put("rssi", rssi);
+                                                        //更新cache信息
+                                                        dataUtil.refreshMacCache(mac, atAddress,macMap,indoorname);
+                                                        visitMapper.updateInjudge2(1,mac,atAddress,indoorname);
+                                                    }
+
+                                                } else { //所在区域为禁区
+                                                    macMap = dataUtil.getStopMacMap(mac, atAddress,indoorname);
+                                                    timeCount = new Long((latest_time.getTime() - (Long) macMap.get("beat")) / (60 * 1000)).intValue();
+                                                    if (timeCount >= 1&&(Integer) macMap.get("inJudge") == 0) {
+                                                        macMap.put("in_time", latest_time);
+                                                        macMap.put("visited_times", (Integer) macMap.get("visited_times") + 1);
+                                                        in_class_number++;
+                                                        hour_in_class_number++;
+                                                        //stopVisitMapper.updateInjudge2(0,mac,atAddress);  //将缓存数据更新到数据库中
+                                                    }
+                                                    macMap.put("handleJudge", 0);
+                                                    macMap.put("left_time", latest_time); //离开时间等价于最后一次在店时间latest_in_time
+                                                    macMap.put("beat", latest_time);
+                                                    macMap.put("inJudge", 1);
+                                                    macMap.put("rssi", rssi);
+                                                    //更新cache信息
+                                                    dataUtil.refreshStopMacCache(mac,atAddress, macMap,indoorname);
+                                                    stopVisitMapper.updateInjudge2(1,mac,atAddress,indoorname);
+                                                    System.out.println("更新cache信息完成！");
+                                                }
+                                            }
+
+                                            //位置计算完毕清除mac缓存
+                                            // redisUtil.del(mac);
+                                            dataUtil.clearstu2();
+
+                                        }
+                                        else {
+                                            System.out.println("不满足不同AP的4个rssi的条件");
+                                            continue;  //继续循环，跳过本次循环体中余下尚未执行的语句，立即进行下一次的循环条件
+                                        }
+                                    }
+                                    //这里更新
+                                    if(atAddress!=null){
+                                        if (new_student != 0 || in_class_number != 0 || hour_in_class_number != 0 ) {
+                                            classDataMapper.updateClassData(atAddress, new_student, in_class_number, hour_in_class_number,indoorname);//倒序排序更新最新的那条
+                                        }
+                                    }
+
+                                    System.out.println("更新统计数据值完成");
+                                    new_student = 0;
+                                    in_class_number = 0;
+                                    hour_in_class_number = 0;
+
+                                    lastmachineid=nowmachineid;
+                                    lastindoorname=nowindoorname;
+
+                                    if(APcount>3){
+                                        APcount = 0; //记得将数据清0，否则会一直累加
+                                    }
+                                }
+                                else{
+                                    System.out.println("设备在后台没添加");
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            catch(Exception e)
+            {
+                System.out.println("Error");
+            }finally {
+                ds.close();
+            }
+        }
+    }
+
 }
 
 

@@ -173,18 +173,25 @@ public class DataUtil {
 
         //非法进入开启报警器（报警器类型是5）
         System.out.println("非法进入开启报警器");
-        List<Device> devices = deviceService.listbyAdress(address,indoorname);
+        List<Device> devices = deviceService.listbyAdress(address,indoorname);  //按type类型为5进行设备搜索
         if(devices.size()!=0){
             for(Device d:devices){
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
                 String dt = df.format(new Date());//获取当前系统时间并格式化
                 logrecordService.addchange(d.getId(),"1",dt,indoorname);
-                //deviceService.monitor(d.getId());
-                //把要操作的设备id加入到session的list中
-                HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-                List<String> b =(List<String>) request.getSession().getAttribute("MachineList");
-                b.add(d.getId());
-                request.getSession().setAttribute("MachineList",b);
+                //把要操作的设备id加入到redis的list中
+/*                List<List<String>> b = (List<List<String>>)(List) redisUtil.lGet("MachineList",0,-1); //获取list的所有值
+                if(b.size()!=0&&b!=null){ //缓存中有值才处理，没值则退出
+                    List<String> c= b.get(0);
+                    if(c.size()!=0 && c!=null){
+                        c.add(d.getId());
+                        redisUtil.del("MachineList");
+                        redisUtil.lSet("MachineList",c);
+                        //启动智能硬件设备信号接收
+                        //deviceService.monitor();
+                    }
+                }
+                */
             }
         }
         return true;

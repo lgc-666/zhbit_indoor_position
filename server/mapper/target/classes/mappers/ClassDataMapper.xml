@@ -15,6 +15,11 @@
     <result column="indoorname" jdbcType="VARCHAR" property="indoorname" />
   </resultMap>
 
+  <!--获取不重复的记录行数-->
+  <select id="listdis" resultType="java.lang.Integer" >
+    SELECT  count(DISTINCT adress) FROM class_data
+  </select>
+
   <!--获取展示数据值-->
   <select id="getSum" resultType="zhbit.za102.bean.SumData" >
     SELECT SUM(in_class_number) AS sum_in ,SUM(new_student) AS sum_new FROM class_data where ( datediff ( updatetime , #{dateTime} ) = 0 ) and indoorname = #{indoorname}

@@ -1,6 +1,7 @@
 package zhbit.za102.Utils;
 
 
+
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -405,7 +406,7 @@ public final class RedisUtils {
      * @param value 值
      * @return
      */
-    public boolean lSet(String key, Object value) {
+    public boolean lSet2(String key, Object value) {
         try {
             redisTemplate.opsForList().rightPush(key, value);
             return true;
@@ -433,12 +434,12 @@ public final class RedisUtils {
         }
     }
     /**
-     * 将list放入缓存
+     * 将list放入缓存（Object）
      * @param key 键
      * @param value 值
      * @return
      */
-    public boolean lSet(String key, List<Object> value) {
+    public boolean lSet3(String key, List<Object> value) {
         try {
             redisTemplate.opsForList().rightPushAll(key, value);
             return true;
@@ -447,6 +448,23 @@ public final class RedisUtils {
             return false;
         }
     }
+
+    /**
+     * 将list放入缓存(String)
+     * @param key 键
+     * @param value 值
+     * @return
+     */
+    public boolean lSet(String key, List<String> value) {
+        try {
+            redisTemplate.opsForList().rightPushAll(key, value);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     /**
      * 将list放入缓存
      *
