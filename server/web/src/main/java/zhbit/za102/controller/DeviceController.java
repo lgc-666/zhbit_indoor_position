@@ -128,19 +128,6 @@ public class DeviceController {
             String dt = df.format(new Date());//获取当前系统时间并格式化
             System.out.println("id-stataus-dt的值："+id+"-"+status+"-"+dt);
             logrecordService.addchange(id,status,dt,indoorname);
-            //把要操作的设备id加入到redis的list中
-/*            List<List<String>> b = (List<List<String>>)(List) redisUtil.lGet("MachineList",0,-1); //获取list的所有值
-            if(b.size()!=0&&b!=null){ //缓存中有值才处理，没值则退出
-                List<String> c= b.get(0);
-                if(c.size()!=0 && c!=null){
-                    c.add(id);
-                    redisUtil.del("MachineList");
-                    redisUtil.lSet("MachineList",c);
-                    //启动智能硬件设备信号接收
-                    //deviceService.monitor();
-                }
-            }
-            */
         } catch (Exception e) {
             e.printStackTrace();
         }

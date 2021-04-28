@@ -130,9 +130,8 @@ public class DataProcessor implements CommandLineRunner {
             e.printStackTrace();
         } finally {
             //ds.close();
-            System.out.println("退出while循环.................");
+            System.out.println(".................线程已启动.................");
         }
-        System.out.println("退出while循环.................");
     }
 
     //此进程用于存储跳出量、动态当前客流量和小时客流量
@@ -403,22 +402,30 @@ public class DataProcessor implements CommandLineRunner {
                        if(devices.size()!=0){ //如果该区域有设备就操作
                            //for(Device d:devices){
                            for(int i=0;i<devices.size();i++){
-                               if(logrecordService.listbyId(devices.get(i).getId())!=null&&logrecordService.listbyId(devices.get(i).getId()).size()!=0){
-                                   String kvalue = deviceService.listbyId2(devices.get(i).getId()).get(0).getDevicevalue(); //根据id从device01表获取对应设备最新的当前状态值
-                                   //先检验状态是否一致，再进行操作记录插入，防止大量数据插入
-                                   if("0".equals(kvalue)){
-                                       System.out.println("要操作的状态与当前状态一致，不插入操作记录！！！");
-                                   }
-                                   else {
-                                       SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
-                                       String dt = df.format(new Date());//获取当前系统时间并格式化
-                                       logrecordService.addchange(devices.get(i).getId(),"0",dt,devices.get(i).getIndoorname());
-                                   }
-                               }
-                               else{
-                                   SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
-                                   String dt = df.format(new Date());//获取当前系统时间并格式化
-                                   logrecordService.addchange(devices.get(i).getId(),"0",dt,devices.get(i).getIndoorname());
+                               if(deviceService.listbyId2(devices.get(i).getId())!=null&&deviceService.listbyId2(devices.get(i).getId()).size()!=0){
+                                       String kvalue = deviceService.listbyId2(devices.get(i).getId()).get(0).getDevicevalue(); //根据id从device01表获取对应设备最新的当前状态值
+
+                                       //先检验状态是否一致，再进行操作记录插入，防止大量数据插入
+                                       if("0".equals(kvalue)){
+                                           System.out.println("要操作的状态与当前状态一致，不插入操作记录！！！");
+                                       }
+                                       else {
+                                           if(logrecordService.listbyId(devices.get(i).getId())!=null&&logrecordService.listbyId(devices.get(i).getId()).size()!=0) { //若已有记录
+                                               String kvalue2 = logrecordService.listbyId(devices.get(i).getId()).get(0).getChangevalue(); //根据id从logrecord01表获取对应设备最新的操作状态值
+                                               if ("0".equals(kvalue2)) {
+                                                   //即将要插入的操作记录与当前已存在的操作记录相同则不进行插入，防止多次插入
+                                               } else {
+                                                   SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+                                                   String dt = df.format(new Date());//获取当前系统时间并格式化
+                                                   logrecordService.addchange(devices.get(i).getId(), "0", dt, devices.get(i).getIndoorname());
+                                               }
+                                           }
+                                           else {
+                                               SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+                                               String dt = df.format(new Date());//获取当前系统时间并格式化
+                                               logrecordService.addchange(devices.get(i).getId(), "0", dt, devices.get(i).getIndoorname());
+                                           }
+                                       }
                                }
                            }
                        }
@@ -426,23 +433,31 @@ public class DataProcessor implements CommandLineRunner {
                    else{ //该区域当前人数非0则开灯
                        if(devices.size()!=0){
                            for(int i=0;i<devices.size();i++){
-                               if(logrecordService.listbyId(devices.get(i).getId())!=null&&logrecordService.listbyId(devices.get(i).getId()).size()!=0) {
-                                   String kvalue = deviceService.listbyId2(devices.get(i).getId()).get(0).getDevicevalue(); //根据id从device01表获取对应设备最新的当前状态值
-                                   //先检验状态是否一致，再进行操作记录插入，防止大量数据插入
-                                   if ("1".equals(kvalue)) {
-                                       System.out.println("要操作的状态与当前状态一致，不插入操作记录！！！");
-                                   } else {
-                                       SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
-                                       String dt = df.format(new Date());//获取当前系统时间并格式化
-                                       System.out.println("写入设备控制状态");
-                                       logrecordService.addchange(devices.get(i).getId(), "1", dt, devices.get(i).getIndoorname());
-                                   }
-                               }
-                               else{
-                                   System.out.println("初始化");
-                                   SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
-                                   String dt = df.format(new Date());//获取当前系统时间并格式化
-                                   logrecordService.addchange(devices.get(i).getId(), "1", dt, devices.get(i).getIndoorname());
+                               if(deviceService.listbyId2(devices.get(i).getId())!=null&&deviceService.listbyId2(devices.get(i).getId()).size()!=0) {
+                                       String kvalue = deviceService.listbyId2(devices.get(i).getId()).get(0).getDevicevalue(); //根据id从device01表获取对应设备最新的当前状态值
+
+                                       //先检验状态是否一致，再进行操作记录插入，防止大量数据插入
+                                       if ("1".equals(kvalue)) {
+                                           System.out.println("要操作的状态与当前状态一致，不插入操作记录！！！");
+                                       } else {
+                                           if(logrecordService.listbyId(devices.get(i).getId())!=null&&logrecordService.listbyId(devices.get(i).getId()).size()!=0) {  //若已有记录
+                                               String kvalue2 = logrecordService.listbyId(devices.get(i).getId()).get(0).getChangevalue(); //根据id从logrecord01表获取对应设备最新的操作状态值
+                                               if ("1".equals(kvalue2)) {
+                                                   //即将要插入的操作记录与当前已存在的操作记录相同则不进行插入，防止多次插入
+                                               } else {
+                                                   SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+                                                   String dt = df.format(new Date());//获取当前系统时间并格式化
+                                                   System.out.println("写入设备控制状态");
+                                                   logrecordService.addchange(devices.get(i).getId(), "1", dt, devices.get(i).getIndoorname());
+                                               }
+                                           }
+                                           else {
+                                               SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+                                               String dt = df.format(new Date());//获取当前系统时间并格式化
+                                               System.out.println("写入设备控制状态");
+                                               logrecordService.addchange(devices.get(i).getId(), "1", dt, devices.get(i).getIndoorname());
+                                           }
+                                       }
                                }
                            }
                        }
