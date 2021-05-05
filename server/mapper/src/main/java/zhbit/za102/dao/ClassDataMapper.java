@@ -50,4 +50,8 @@ public interface ClassDataMapper {
     List<SumData> getSum(@Param("dateTime")String dateTime,@Param("indoorname")String indoorname);
 
     Integer listdis();
+    //获取上一个小时的数据
+    List<ClassData> getPreHour(@Param("prehour") Integer prehour);
+    void updateClassDataTwo(@Param("address")String address,@Param("Number")Integer Number,@Param("indoorname")String indoorname);
+
 }

@@ -134,4 +134,38 @@ public class DeviceController {
         return new Msg();
     }
 
+    @PutMapping("/updateStatus2")
+    public Msg updateStatus2(@RequestParam("status") String status) {
+        try {
+            System.out.println("stataus的值："+status);
+            //通过在redis中存值判断是否进行自动控制
+                redisUtil.del("control");
+                redisUtil.set("control",status);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new Msg();
+    }
+
+    @PutMapping("/getcontrol")
+    public Msg getcontrol() {
+        try {
+           String u = (String) redisUtil.get("control");
+            return new Msg(u);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Msg("查询失败", 401);
+        }
+    }
+
+    @DeleteMapping("/deleteAllCach")
+    public Msg deleteAllCach() {
+        try {
+            deviceService.deleteAllCach();
+            return new Msg("操作成功");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Msg("操作失败", 401);
+        }
+    }
 }

@@ -36,6 +36,21 @@
     select hour_in_class_number,hours from class_data where adress = #{address} and indoorname = #{indoorname} and  ( datediff ( updatetime , #{dateTime} ) = 0 ) order by updatetime desc
   </select>
 
+  <!--获取上一个小时的数据-->
+  <select id="getPreHour" resultType="zhbit.za102.bean.ClassData" >
+    select * from class_data where hours=#{prehour} order by updatetime desc
+  </select>
+
+  <!--倒序排序更新最新的那一条-->
+  <update id="updateClassDataTwo" >
+        UPDATE
+        class_data
+        SET
+        in_class_number =in_class_number+#{Number},hour_in_class_number = hour_in_class_number+#{Number}
+        WHERE
+        id in (select id from (select * from class_data where adress=#{address} ORDER BY updatetime desc LIMIT 1)as t) and indoorname = #{indoorname}
+ </update>
+
 
   <!--找当前时间和更新时间的差在1小时内的-->
   <select id="selectWithin1hour" resultType="java.lang.Integer" >

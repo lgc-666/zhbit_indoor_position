@@ -157,7 +157,10 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/listMapMamageSearchByIndoorname", "perms[listMapMamageSearchByIndoorname]");
 
         filterChainDefinitionMap.put("/updateStatus", "perms[updateStatus]");
+        filterChainDefinitionMap.put("/updateStatus2", "perms[updateStatus2]");
         filterChainDefinitionMap.put("/doStopVisit", "perms[doStopVisit]");
+        filterChainDefinitionMap.put("/getcontrol", "perms[getcontrol]");
+        filterChainDefinitionMap.put("/deleteAllCach", "perms[deleteAllCach]");
 
         filterChainDefinitionMap.put("/**", "url");
         shiroFilterFactoryBean.setFilters(customisedFilter);

@@ -75,4 +75,10 @@ public class MachineService {
         PageInfo<Machine> page = new PageInfo<>(us);
         return new Msg(page);
     }
+
+    public List<Machine> listbyId2(String id) {
+        MachineExample example = new MachineExample();
+        example.createCriteria().andMachineidEqualTo(id);
+        return machineMapper.selectByExample(example);
+    }
 }

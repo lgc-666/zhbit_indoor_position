@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -141,80 +142,83 @@ public class DeviceService {
                         String deviceid = mess1.split(",")[0];
                         String devicetype = mess1.split(",")[1];
                         String devicevalue = mess1.split(",")[2].trim();
-                        String indoorname = mess1.split(",")[3].trim();  //新加的地图数据
+                        //String indoorname = mess1.split(",")[3].trim();  //新加的地图数据
+                        if(listbyId2(deviceid).size()!=0&&listbyId2(deviceid)!=null){
+                            String indoorname = listbyId2(deviceid).get(0).getIndoorname();
 
-                        //思路：从redis拿到存储将要操作设备的list，遍历list，若若真实设备状态已经改变则将完成操作的设备从list中删除
-                        List<List<String>> a = (List<List<String>>) (List) redisUtil.lGet("MachineList", 0, -1); //获取list的所有值
-                        System.out.println("redis中的设备list====>size：" + a.size());
-                        if (a.size() != 0 && a != null) { //缓存中有值才处理，没值则退出
-                            List<String> c = a.get(0);
-                            if (c.size() != 0 && c != null) {
-                                for (int i = 0; i < c.size(); i++) {  //遍历列表中的设备id
-                                    if(logrecordService.listbyId(c.get(i))!=null&&logrecordService.listbyId(c.get(i)).size()!=0){
-                                        String kvalue = logrecordService.listbyId(c.get(i)).get(0).getChangevalue(); //根据id从logrecord01表获取对应设备最新的操作状态值
-                                        System.out.println("按钮传来的id：" + c.get(i) + "---设备id：" + deviceid);
-                                        System.out.println((kvalue.trim()).equals(devicevalue.trim()));
+                            //思路：从redis拿到存储将要操作设备的list，遍历list，若若真实设备状态已经改变则将完成操作的设备从list中删除
+                            List<List<String>> a = (List<List<String>>) (List) redisUtil.lGet("MachineList", 0, -1); //获取list的所有值
+                            System.out.println("redis中的设备list====>size：" + a.size());
+                            if (a.size() != 0 && a != null) { //缓存中有值才处理，没值则退出
+                                List<String> c = a.get(0);
+                                if (c.size() != 0 && c != null) {
+                                    for (int i = 0; i < c.size(); i++) {  //遍历列表中的设备id
+                                        if(logrecordService.listbyId(c.get(i))!=null&&logrecordService.listbyId(c.get(i)).size()!=0){
+                                            String kvalue = logrecordService.listbyId(c.get(i)).get(0).getChangevalue(); //根据id从logrecord01表获取对应设备最新的操作状态值
+                                            System.out.println("按钮传来的id：" + c.get(i) + "---设备id：" + deviceid);
+                                            System.out.println((kvalue.trim()).equals(devicevalue.trim()));
 
-                                        if (c.get(i).equals(deviceid))   //按钮传来的id与设备id相同时才做设备控制操作
-                                        {
-                                            System.out.println("同一个设备id");
-                                            //判断是否有控制指令且控制指令不同于当前状态值
-                                            if (kvalue.equals(devicevalue))   //若真实设备状态已经改变则退出该循环进行下一个
+                                            if (c.get(i).equals(deviceid))   //按钮传来的id与设备id相同时才做设备控制操作
                                             {
-                                                System.out.println("设备id列表：" + c);
-                                                System.out.println("值比较1：" + kvalue);
-                                                System.out.println("硬件值：" + devicevalue);
-                                                check(deviceid, devicetype, devicevalue, ip, port, indoorname);
-                                                //删除redis列表中已处理完的设备id
-                                                c.remove(c.get(i));
-                                                //设置缓存
-                                                redisUtil.del("MachineList");
-                                                if (c.size() != 0) {
-                                                    redisUtil.lSet("MachineList", c);
-                                                } else {
-                                                    //已操作的设备已处理完，即操作设备的list为0时，退出循环
-                                                    System.out.println("退出for循环");
-                                                    break;
-                                                }
-                                            } else {
-                                                System.out.println("值比较2：" + kvalue);
-                                                System.out.println("硬件值：" + devicevalue);
-                                                if (kvalue.equals("0")) {
-                                                    control_value = c.get(i) + ",SWITCH0";
-                                                } else {
-                                                    control_value = c.get(i) + ",SWITCH1";
-                                                }
-                                                try {
-                                                    //2、提供数据，封装打包  ---将control_value值返回给指定ip地址客户端(ip是变化的，动态ip)
-                                                    byte[] bs = control_value.getBytes();
-                                                    DatagramPacket dp2 = new DatagramPacket(bs, bs.length, InetAddress.getByName(ip), port);
-                                                    /** 3、使用send发送 */
-                                                    try {
-                                                        ds.send(dp2);
-                                                        check(deviceid, devicetype, devicevalue, ip, port, indoorname);
-                                                    } catch (IOException e) {
-                                                        System.out.println("发送失败： ");
-                                                        e.printStackTrace();
+                                                System.out.println("同一个设备id");
+                                                //判断是否有控制指令且控制指令不同于当前状态值
+                                                if (kvalue.equals(devicevalue))   //若真实设备状态已经改变则退出该循环进行下一个
+                                                {
+                                                    System.out.println("设备id列表：" + c);
+                                                    System.out.println("值比较1：" + kvalue);
+                                                    System.out.println("硬件值：" + devicevalue);
+                                                    check(deviceid, devicetype, devicevalue, ip, port, indoorname);
+                                                    //删除redis列表中已处理完的设备id
+                                                    c.remove(c.get(i));
+                                                    //设置缓存
+                                                    redisUtil.del("MachineList");
+                                                    if (c.size() != 0) {
+                                                        redisUtil.lSet("MachineList", c);
+                                                    } else {
+                                                        //已操作的设备已处理完，即操作设备的list为0时，退出循环
+                                                        System.out.println("退出for循环");
+                                                        break;
                                                     }
-                                                } catch (Exception e) {
-                                                    System.out.println("Error:" + e);
+                                                } else {
+                                                    System.out.println("值比较2：" + kvalue);
+                                                    System.out.println("硬件值：" + devicevalue);
+                                                    if (kvalue.equals("0")) {
+                                                        control_value = c.get(i) + ",SWITCH0";
+                                                    } else {
+                                                        control_value = c.get(i) + ",SWITCH1";
+                                                    }
+                                                    try {
+                                                        //2、提供数据，封装打包  ---将control_value值返回给指定ip地址客户端(ip是变化的，动态ip)
+                                                        byte[] bs = control_value.getBytes();
+                                                        DatagramPacket dp2 = new DatagramPacket(bs, bs.length, InetAddress.getByName(ip), port);
+                                                        /** 3、使用send发送 */
+                                                        try {
+                                                            ds.send(dp2);
+                                                            check(deviceid, devicetype, devicevalue, ip, port, indoorname);
+                                                        } catch (IOException e) {
+                                                            System.out.println("发送失败： ");
+                                                            e.printStackTrace();
+                                                        }
+                                                    } catch (Exception e) {
+                                                        System.out.println("Error:" + e);
+                                                    }
                                                 }
                                             }
                                         }
+                                        else{
+                                            System.out.println("没有要处理的请求！！！");
+                                        }
                                     }
-                                    else{
-                                        System.out.println("没有要处理的请求！！！");
-                                    }
+                                    //break;//退出死循环
+                                } else {
+                                    //已操作的设备已处理完，即操作设备的list为0时，退出死循环
+                                    //break; //退出死循环
                                 }
-                                //break;//退出死循环
                             } else {
                                 //已操作的设备已处理完，即操作设备的list为0时，退出死循环
                                 //break; //退出死循环
+                                System.out.println("继续3020的死循环");
                             }
-                        } else {
-                            //已操作的设备已处理完，即操作设备的list为0时，退出死循环
-                            //break; //退出死循环
-                            System.out.println("继续3020的死循环");
                         }
                         //ds.close();
                         }catch (Exception e) {
@@ -261,5 +265,23 @@ public class DeviceService {
             String lasttime=String.valueOf(now1);   //long型转string型
             deviceService.insertdevice(deviceid,devicetype,devicevalue,lasttime,ip,port,gentime,indoorname);    //插入设备信息
         }
+    }
+
+    @Caching(evict={
+            @CacheEvict(value="ClassData",allEntries = true),
+            @CacheEvict(value="Class",allEntries = true),
+            @CacheEvict(value="Device",allEntries = true),
+            @CacheEvict(value="Logrecord",allEntries = true),
+            @CacheEvict(value="Machine",allEntries = true),
+            @CacheEvict(value="MapMamage",allEntries = true),
+            @CacheEvict(value="Permission", allEntries=true),
+            @CacheEvict(value="RegisterApproval",allEntries = true),
+            @CacheEvict(value="Role", allEntries=true),
+            @CacheEvict(value="Visit",allEntries = true),
+            @CacheEvict(value="StopVisit",allEntries = true),
+            @CacheEvict(value="User", allEntries=true),
+    })
+    public void deleteAllCach(){
+        System.out.println("点击刷新按钮刷新缓存！！");
     }
 }

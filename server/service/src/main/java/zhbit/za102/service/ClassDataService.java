@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 import zhbit.za102.bean.*;
 import zhbit.za102.dao.ClassDataMapper;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 @Service
@@ -80,5 +83,23 @@ public class ClassDataService {
     }
     public List<InCustomerPerHour> getInCustomerPerHour(String address, String dateTime,String indoorname) {//获取主要数据
         return classDataMapper.getInCustomerPerHour(address,dateTime,indoorname);
+    }
+
+    //获取上一个小时的数据
+    public List<ClassData> getPreHour(){
+        GregorianCalendar calendar = new GregorianCalendar();
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int hours=0;
+        if(hour!=0){
+            hours=hour-1;
+        }
+        else {
+            hours=23;
+        }
+        System.out.println("小时值hours为："+hours);
+        ClassDataExample example = new ClassDataExample();
+        example.createCriteria().andHoursEqualTo(hours);
+        example.setOrderByClause("updatetime desc");
+        return classDataMapper.selectByExample(example);
     }
 }

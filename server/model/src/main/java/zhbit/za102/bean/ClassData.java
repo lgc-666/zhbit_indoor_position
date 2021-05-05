@@ -113,4 +113,21 @@ public class ClassData implements Serializable {
     public void setIndoorname(String indoorname) {
         this.indoorname = indoorname == null ? null : indoorname.trim();
     }
+
+    @Override
+    public String toString() {
+        return "ClassData{" +
+                "id=" + id +
+                ", adress='" + adress + '\'' +
+                ", newStudent=" + newStudent +
+                ", inClassNumber=" + inClassNumber +
+                ", jumpOut=" + jumpOut +
+                ", classNowNumber=" + classNowNumber +
+                ", hourClassNumber=" + hourClassNumber +
+                ", hourInClassNumber=" + hourInClassNumber +
+                ", updatetime=" + updatetime +
+                ", hours=" + hours +
+                ", indoorname='" + indoorname + '\'' +
+                '}';
+    }
 }
