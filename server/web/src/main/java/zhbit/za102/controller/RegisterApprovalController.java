@@ -5,8 +5,11 @@ import org.springframework.web.bind.annotation.*;
 import zhbit.za102.bean.Msg;
 import zhbit.za102.bean.RegisterApproval;
 
+import zhbit.za102.bean.Role;
 import zhbit.za102.bean.User;
 import zhbit.za102.service.RegisterApprovalService;
+import zhbit.za102.service.RoleService;
+import zhbit.za102.service.UserRoleService;
 import zhbit.za102.service.UserService;
 
 import java.util.List;
@@ -17,6 +20,10 @@ public class RegisterApprovalController {
     RegisterApprovalService registerApprovalService;
     @Autowired
     UserService userService;
+    @Autowired
+    RoleService roleService;
+    @Autowired
+    UserRoleService userRoleService;
 
     @GetMapping("/listregisterApproval")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
@@ -29,7 +36,7 @@ public class RegisterApprovalController {
         }
     }
     @PostMapping("/agreeregisterApproval")
-    public Msg agree(@RequestParam("agreeid") Integer id) {  //所有用户
+    public Msg agree(@RequestParam("agreeid") Integer id,String rolename) {  //所有用户
         try {
             List<RegisterApproval> rs = registerApprovalService.list(id);
             User user = new User();
@@ -39,6 +46,9 @@ public class RegisterApprovalController {
             user.setMac(rs.get(0).getMac());
             userService.add(user);
             registerApprovalService.delete(id);
+            List<Role> u=roleService.listDesc(rolename);
+            User b=userService.getByName(rs.get(0).getUsername());
+            userRoleService.setRoles2(b,u.get(0).getRid());
             return new Msg("审批已通过");
         } catch (Exception e) {
             e.printStackTrace();

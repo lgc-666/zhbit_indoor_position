@@ -52,11 +52,16 @@ public class RoleService {
 
     }
 
+    public List<Role> listDesc(String rolename) {
+        RoleExample example = new RoleExample();
+        example.createCriteria().andDescEqualTo(rolename);
+        return roleMapper.selectByExample(example);
+    }
+
+
     public List<Role> listRoles(User user) {
         List<Role> roles = new ArrayList<>();
-
         UserRoleExample example = new UserRoleExample();
-
         example.createCriteria().andUidEqualTo(user.getUid());
         List<UserRole> userRoles = userRoleMapper.selectByExample(example);
 

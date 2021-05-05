@@ -101,5 +101,12 @@ public class UserService {
         PageInfo<User> page = new PageInfo<>(us);
         return new Msg(page);
     }
+
+    public List<User> listByUid(Integer uid){
+        UserExample example = new UserExample();
+        example.createCriteria().andUidEqualTo(uid);
+        return userMapper.selectByExample(example);
+    }
+
 }
 

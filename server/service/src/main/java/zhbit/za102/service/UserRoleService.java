@@ -38,6 +38,18 @@ public class UserRoleService {
             }
     }
 
+    public void setRoles2(User user, Integer roleIds) {
+        // 设置新的角色关系
+        if (null != roleIds){
+                UserRole userRole = new UserRole();
+                if(roleIds!=0){
+                    userRole.setRid(roleIds);
+                    userRole.setUid(user.getUid());
+                    userRoleMapper.insert(userRole);
+                }
+        }
+    }
+
     @CacheEvict(value="User", allEntries=true)
     public void deleteByUser(Integer userId) {
         UserRoleExample example = new UserRoleExample();
@@ -56,5 +68,13 @@ public class UserRoleService {
         for (UserRole userRole : urs) {
             userRoleMapper.deleteByPrimaryKey(userRole.getId());
         }
+    }
+
+    public List<UserRole> list() {
+        int i=2;
+
+        UserRoleExample example = new UserRoleExample();
+        example.createCriteria().andRidEqualTo(2);
+        return userRoleMapper.selectByExample(example);
     }
 }

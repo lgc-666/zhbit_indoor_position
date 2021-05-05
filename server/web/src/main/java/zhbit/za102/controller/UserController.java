@@ -7,10 +7,12 @@ import org.springframework.web.bind.annotation.*;
 import zhbit.za102.bean.Msg;
 import zhbit.za102.bean.Role;
 import zhbit.za102.bean.User;
+import zhbit.za102.bean.UserRole;
 import zhbit.za102.service.RoleService;
 import zhbit.za102.service.UserRoleService;
 import zhbit.za102.service.UserService;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -131,4 +133,18 @@ public class UserController {
         }
     }
 
+    @GetMapping("/listUserByRoleNoPage")
+    public Msg list()throws Exception {  //所有用户
+        try {
+            List<User> a = new ArrayList<>();
+            List<UserRole> urs = userRoleService.list();
+            for (UserRole userRole : urs) {
+                a.add(userService.listByUid(userRole.getUid()).get(0));
+            }
+            return new Msg(a);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Msg("查询失败", 401);
+        }
+    }
 }
