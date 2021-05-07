@@ -2,26 +2,48 @@ package zhbit.za102.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import zhbit.za102.bean.Logrecord;
-import zhbit.za102.bean.Msg;
-import zhbit.za102.bean.StopVisit;
+import zhbit.za102.bean.*;
 import zhbit.za102.service.LogrecordService;
+import zhbit.za102.service.MapMamageService;
 import zhbit.za102.service.StopVisitService;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.TimeZone;
 
 @RestController
 public class LogrecordController {
     @Autowired
     LogrecordService logrecordService;
+    @Autowired
+    MapMamageService mapMamageService;
 
     @GetMapping("/listLogrecord")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
-                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+                    @RequestParam(value = "size",defaultValue = "8")int size,
+                    @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {  //所有用户
         try {
-            return logrecordService.list(start, size);
+            List<String> c = new ArrayList<>();
+            if("管理员".equals(roledesc)) {
+                return logrecordService.list(start, size);
+            }
+            else {
+                List<map_mamage> list = mapMamageService.list2(username);
+                for (map_mamage map : list) {
+                    List<Logrecord> b = logrecordService.list4(map.getIndoorname());
+                    if(b.size()!=0){
+                        for (Logrecord g : b){
+                            c.add(g.getId());
+                        }
+                    }
+                    else{
+                        c.add("");
+                    }
+                }
+                return logrecordService.list3(c,start,size);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return new Msg("查询失败", 401);
@@ -30,9 +52,23 @@ public class LogrecordController {
 
     @GetMapping("/listLogrecordSearch")
     public Msg listSearch(@RequestParam("staffdata") String staffdata,@RequestParam(value = "start",defaultValue = "1")int start,
-                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+                          @RequestParam(value = "size",defaultValue = "8")int size,
+                          @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {  //所有用户
         try {
-            return logrecordService.listSearch(staffdata,start, size);
+            List<String> c = new ArrayList<>();
+            if("管理员".equals(roledesc)) {
+                return logrecordService.listSearch(staffdata,start, size);
+            }
+            else {
+                List<map_mamage> list = mapMamageService.list2(username);
+                for (map_mamage map : list) {
+                    List<Logrecord> b = logrecordService.list5(map.getIndoorname(),staffdata);
+                    for (Logrecord g : b){
+                        c.add(g.getId());
+                    }
+                }
+                return logrecordService.list3(c,start,size);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return new Msg("查询失败", 401);

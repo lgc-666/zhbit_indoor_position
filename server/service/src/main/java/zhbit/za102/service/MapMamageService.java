@@ -57,7 +57,7 @@ public class MapMamageService {
     public List<map_mamage> list2(String staffdata) {
         map_mamageExample example = new map_mamageExample();
         example.createCriteria().andChargeEqualTo(staffdata);
-        example.setOrderByClause("id desc");
+        //example.setOrderByClause("id desc");
         return mapMamageMapper.selectByExample(example);
     }
     public Msg listSearch(String staffdata,int start, int size) {

@@ -149,6 +149,7 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/sortNow", "perms[sortNow]");
 
         filterChainDefinitionMap.put("/listMapMamageNoPage", "perms[listMapMamageNoPage]");
+        filterChainDefinitionMap.put("/listMapMamageNoPage2", "perms[listMapMamageNoPage2]");
         filterChainDefinitionMap.put("/listMapMamage", "perms[listMapMamage]");
         filterChainDefinitionMap.put("/deleteMapMamage", "perms[deleteMapMamage]");
         filterChainDefinitionMap.put("/updateMapMamage", "perms[updateMapMamage]");

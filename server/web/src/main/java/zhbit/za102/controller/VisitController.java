@@ -5,25 +5,45 @@ import org.springframework.web.bind.annotation.*;
 import zhbit.za102.bean.Class;
 import zhbit.za102.bean.Msg;
 import zhbit.za102.bean.Visit;
+import zhbit.za102.bean.map_mamage;
 import zhbit.za102.service.ClassService;
+import zhbit.za102.service.MapMamageService;
 import zhbit.za102.service.VisitService;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
 @RestController
 public class VisitController {
     @Autowired
     VisitService visitService;
+    @Autowired
+    MapMamageService mapMamageService;
 
     @GetMapping("/listVisit")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
-                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+                    @RequestParam(value = "size",defaultValue = "8")int size,
+                    @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {  //所有用户
         try {
-            return visitService.list(start, size);
+            List<Integer> c = new ArrayList<>();
+            if("管理员".equals(roledesc)) {
+                return visitService.list(start, size);
+            }
+            else {
+                List<map_mamage> list = mapMamageService.list2(username);
+                for (map_mamage map : list) {
+                    List<Visit> b = visitService.list4(map.getIndoorname());
+                    if(b.size()!=0){
+                        for (Visit g : b){
+                            c.add(g.getVisitid());
+                        }
+                    }
+                    else{
+                        c.add(0);
+                    }
+                }
+                return visitService.list3(c,start,size);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return new Msg("查询失败", 401);
@@ -32,9 +52,24 @@ public class VisitController {
 
     @GetMapping("/listVisitSearch")
     public Msg listSearch(@RequestParam("staffdata") String staffdata,@RequestParam(value = "start",defaultValue = "1")int start,
-                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+                          @RequestParam(value = "size",defaultValue = "8")int size,
+                          @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {  //所有用户
         try {
-            return visitService.listSearch(staffdata,start, size);
+            List<Integer> c = new ArrayList<>();
+            if("管理员".equals(roledesc)) {
+                return visitService.listSearch(staffdata,start, size);
+            }
+            else {
+                List<map_mamage> list = mapMamageService.list2(username);
+                for (map_mamage map : list) {
+                    List<Visit> b = visitService.list5(map.getIndoorname(),staffdata);
+                    for (Visit g : b){
+                        c.add(g.getVisitid());
+                    }
+                }
+                return visitService.list3(c,start,size);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
             return new Msg("查询失败", 401);

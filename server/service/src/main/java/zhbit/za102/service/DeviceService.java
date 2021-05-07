@@ -72,6 +72,20 @@ public class DeviceService {
         return deviceMapper.selectByExample(example);
     }
 
+    public List<Device> list5(String indoorname,String staffdata) {
+        DeviceExample example = new DeviceExample();
+        example.createCriteria().andIdEqualTo(staffdata).andIndoornameEqualTo(indoorname);
+        //example.setOrderByClause("deviceid desc");
+        return deviceMapper.selectByExample(example);
+    }
+
+    public List<Device> list4(String indoorname) {
+        DeviceExample example = new DeviceExample();
+        example.createCriteria().andIndoornameEqualTo(indoorname);
+        //example.setOrderByClause("deviceid desc");
+        return deviceMapper.selectByExample(example);
+    }
+
     @Cacheable(value="Device",key = "'list'+'-'+#start+'-'+#size")
     public Msg list(int start, int size) {
         PageHelper.startPage(start, size, "deviceid desc");
@@ -87,6 +101,14 @@ public class DeviceService {
         return new Msg(page);
     }
 
+    public Msg list3(List<String> us, int start, int size) {
+        PageHelper.startPage(start, size);
+        DeviceExample example = new DeviceExample();
+        example.createCriteria().andIdIn(us);
+        List<Device> a= deviceMapper.selectByExample(example);
+        PageInfo<Device> page = new PageInfo<>(a);
+        return new Msg(page);
+    }
 
     public List<Device> listbyId(String id,String indoorname) {
         DeviceExample example = new DeviceExample();

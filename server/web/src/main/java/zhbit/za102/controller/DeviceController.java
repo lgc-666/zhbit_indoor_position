@@ -6,11 +6,11 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import zhbit.za102.Utils.DataUtil;
 import zhbit.za102.Utils.RedisUtils;
-import zhbit.za102.bean.Device;
-import zhbit.za102.bean.Logrecord;
-import zhbit.za102.bean.Msg;
+import zhbit.za102.bean.*;
+import zhbit.za102.bean.Class;
 import zhbit.za102.service.DeviceService;
 import zhbit.za102.service.LogrecordService;
+import zhbit.za102.service.MapMamageService;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -31,6 +31,9 @@ public class DeviceController {
     DeviceService deviceService;
     @Autowired
     LogrecordService logrecordService;
+    @Autowired
+    MapMamageService mapMamageService;
+
     @Resource
     RedisUtils redisUtil;
 
@@ -39,9 +42,28 @@ public class DeviceController {
 
     @GetMapping("/listDevice")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
-                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+                    @RequestParam(value = "size",defaultValue = "8")int size,
+                    @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {  //所有用户
         try {
-            return deviceService.list(start, size);
+            List<String> c = new ArrayList<>();
+            if("管理员".equals(roledesc)) {
+                return deviceService.list(start, size);
+            }
+            else {
+                List<map_mamage> list = mapMamageService.list2(username);
+                for (map_mamage map : list) {
+                    List<Device> b = deviceService.list4(map.getIndoorname());
+                    if(b.size()!=0){
+                        for (Device g : b){
+                            c.add(g.getId());
+                        }
+                    }
+                    else{
+                        c.add("");
+                    }
+                }
+                return deviceService.list3(c,start,size);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return new Msg("查询失败", 401);
@@ -50,9 +72,23 @@ public class DeviceController {
 
     @GetMapping("/listDeviceSearch")
     public Msg listSearch(@RequestParam("staffdata") String staffdata,@RequestParam(value = "start",defaultValue = "1")int start,
-                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+                          @RequestParam(value = "size",defaultValue = "8")int size,@RequestParam("roledesc") String roledesc,
+                          @RequestParam("username") String username)throws Exception {  //所有用户
         try {
-            return deviceService.listSearch(staffdata,start, size);
+            List<String> c = new ArrayList<>();
+            if("管理员".equals(roledesc)) {
+                return deviceService.listSearch(staffdata,start, size);
+            }
+            else {
+                List<map_mamage> list = mapMamageService.list2(username);
+                for (map_mamage map : list) {
+                    List<Device> b = deviceService.list5(map.getIndoorname(),staffdata);
+                    for (Device g : b){
+                        c.add(g.getId());
+                    }
+                }
+                return deviceService.list3(c,start,size);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return new Msg("查询失败", 401);

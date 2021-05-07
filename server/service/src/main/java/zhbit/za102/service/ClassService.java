@@ -67,7 +67,7 @@ public class ClassService {
     public List<Class> list3(String indoorname) {
         ClassExample example = new ClassExample();
         example.createCriteria().andIndoornameEqualTo(indoorname);
-        example.setOrderByClause("classid desc");
+        //example.setOrderByClause("classid desc");
         return classMapper.selectByExample(example);
     }
 
@@ -105,5 +105,28 @@ public class ClassService {
         ClassExample example = new ClassExample();
         example.createCriteria().andAdressEqualTo(addressname).andIndoornameEqualTo(indoorname);
         return classMapper.selectByExample(example);
+    }
+
+    public List<Class> list5(String indoorname,String staffdata) {
+        ClassExample example = new ClassExample();
+        example.createCriteria().andAdressEqualTo(staffdata).andIndoornameEqualTo(indoorname);
+        //example.setOrderByClause("mid desc");
+        return classMapper.selectByExample(example);
+    }
+
+    public List<Class> list4(String indoorname) {
+        ClassExample example = new ClassExample();
+        example.createCriteria().andIndoornameEqualTo(indoorname);
+        //example.setOrderByClause("mid desc");
+        return classMapper.selectByExample(example);
+    }
+
+    public Msg list3(List<Integer> us, int start, int size) {
+        PageHelper.startPage(start, size);//只对该语句以后的第一个查询语句得到的数据进行分页
+        ClassExample example = new ClassExample();
+        example.createCriteria().andClassidIn(us);
+        List<Class> a= classMapper.selectByExample(example);
+        PageInfo<Class> page = new PageInfo<>(a);
+        return new Msg(page);
     }
 }

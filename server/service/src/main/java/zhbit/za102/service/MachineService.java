@@ -81,4 +81,25 @@ public class MachineService {
         example.createCriteria().andMachineidEqualTo(id);
         return machineMapper.selectByExample(example);
     }
+
+    public List<Machine> list4(String indoorname) {
+        MachineExample example = new MachineExample();
+        example.createCriteria().andIndoornameEqualTo(indoorname);
+        //example.setOrderByClause("mid desc");
+        return machineMapper.selectByExample(example);
+    }
+    public List<Machine> list5(String indoorname,String staffdata) {
+        MachineExample example = new MachineExample();
+        example.createCriteria().andMachineidEqualTo(staffdata).andIndoornameEqualTo(indoorname);
+        //example.setOrderByClause("mid desc");
+        return machineMapper.selectByExample(example);
+    }
+    public Msg list3(List<String> us, int start, int size) {
+        PageHelper.startPage(start, size);//只对该语句以后的第一个查询语句得到的数据进行分页
+        MachineExample example = new MachineExample();
+        example.createCriteria().andMachineidIn(us);
+        List<Machine> a= machineMapper.selectByExample(example);
+        PageInfo<Machine> page = new PageInfo<>(a);
+        return new Msg(page);
+    }
 }

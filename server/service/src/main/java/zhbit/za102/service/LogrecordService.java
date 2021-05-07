@@ -77,4 +77,27 @@ public class LogrecordService {
     public void addchange(String id,String changevalue,String gentime,String indoorname){
         logrecordMapper.addchange(id,changevalue,gentime,indoorname);
     }
+
+    public Msg list3(List<String> us, int start, int size) {
+        PageHelper.startPage(start, size);//只对该语句以后的第一个查询语句得到的数据进行分页
+        LogrecordExample example = new LogrecordExample();
+        example.createCriteria().andIdIn(us);
+        List<Logrecord> a= logrecordMapper.selectByExample(example);
+        PageInfo<Logrecord> page = new PageInfo<>(a);
+        return new Msg(page);
+    }
+
+    public List<Logrecord> list4(String indoorname) {
+        LogrecordExample example = new LogrecordExample();
+        example.createCriteria().andIndoornameEqualTo(indoorname);
+        //example.setOrderByClause("mid desc");
+        return logrecordMapper.selectByExample(example);
+    }
+
+    public List<Logrecord> list5(String indoorname,String staffdata) {
+        LogrecordExample example = new LogrecordExample();
+        example.createCriteria().andIdEqualTo(staffdata).andIndoornameEqualTo(indoorname);
+        //example.setOrderByClause("mid desc");
+        return logrecordMapper.selectByExample(example);
+    }
 }

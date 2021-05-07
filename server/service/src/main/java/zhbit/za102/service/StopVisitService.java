@@ -75,4 +75,26 @@ public class StopVisitService {
         return stopVisitMapper.selectByExample(example);
     }
 
+    public Msg list3(List<Integer> us, int start, int size) {
+        PageHelper.startPage(start, size);//只对该语句以后的第一个查询语句得到的数据进行分页
+        StopVisitExample example = new StopVisitExample();
+        example.createCriteria().andStopVisitIdIn(us);
+        List<StopVisit> a= stopVisitMapper.selectByExample(example);
+        PageInfo<StopVisit> page = new PageInfo<>(a);
+        return new Msg(page);
+    }
+
+    public List<StopVisit> list4(String indoorname) {
+        StopVisitExample example = new StopVisitExample();
+        example.createCriteria().andIndoornameEqualTo(indoorname);
+        //example.setOrderByClause("mid desc");
+        return stopVisitMapper.selectByExample(example);
+    }
+
+    public List<StopVisit> list5(String indoorname,String staffdata) {
+        StopVisitExample example = new StopVisitExample();
+        example.createCriteria().andAddressEqualTo(staffdata).andIndoornameEqualTo(indoorname);
+        //example.setOrderByClause("mid desc");
+        return stopVisitMapper.selectByExample(example);
+    }
 }

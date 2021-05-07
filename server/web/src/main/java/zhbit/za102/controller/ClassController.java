@@ -5,12 +5,19 @@ import org.springframework.web.bind.annotation.*;
 import zhbit.za102.bean.Class;
 
 import zhbit.za102.bean.Msg;
+import zhbit.za102.bean.map_mamage;
 import zhbit.za102.service.ClassService;
+import zhbit.za102.service.MapMamageService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 public class ClassController {
     @Autowired
     ClassService classService;
+    @Autowired
+    MapMamageService mapMamageService;
 
     @GetMapping("/listClassNoPagePublic")
     public Msg listPublic()throws Exception {  //所有用户
@@ -42,9 +49,22 @@ public class ClassController {
         }
     }
     @GetMapping("/listClassNoPage2")
-    public Msg list2()throws Exception {  //所有用户
+    public Msg list2(@RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {  //所有用户
         try {
+            List<Class> c = new ArrayList<>();
+            if("管理员".equals(roledesc)){
                 return new Msg(classService.list());
+            }
+            else {
+                List<map_mamage> list = mapMamageService.list2(username);
+                for (map_mamage map : list) {
+                    List<Class> b = classService.list3(map.getIndoorname());
+                    for (Class g : b){
+                        c.add(g);
+                    }
+                }
+                return new Msg(c);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return new Msg("查询失败", 401);
@@ -53,9 +73,23 @@ public class ClassController {
 
     @GetMapping("/listClass")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
-                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+                    @RequestParam(value = "size",defaultValue = "8")int size,
+                    @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {  //所有用户
         try {
-            return classService.list(start, size);
+            List<Integer> c = new ArrayList<>();
+            if("管理员".equals(roledesc)) {
+                return classService.list(start, size);
+            }
+            else {
+                List<map_mamage> list = mapMamageService.list2(username);
+                for (map_mamage map : list) {
+                    List<Class> b = classService.list4(map.getIndoorname());
+                    for (Class g : b){
+                        c.add(g.getClassid());
+                    }
+                }
+                return classService.list3(c,start,size);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return new Msg("查询失败", 401);
@@ -64,9 +98,29 @@ public class ClassController {
 
     @GetMapping("/listClassSearch")
     public Msg listSearch(@RequestParam("staffdata") String staffdata,@RequestParam(value = "start",defaultValue = "1")int start,
-                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+                          @RequestParam(value = "size",defaultValue = "8")int size,
+                          @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {  //所有用户
         try {
-            return classService.listSearch(staffdata,start, size);
+            List<Integer> c = new ArrayList<>();
+            if("管理员".equals(roledesc)) {
+                return classService.listSearch(staffdata,start, size);
+            }
+            else {
+                List<map_mamage> list = mapMamageService.list2(username);
+                for (map_mamage map : list) {
+                    List<Class> b = classService.list5(map.getIndoorname(),staffdata);
+                    if(b.size()!=0){
+                        for (Class g : b){
+                            c.add(g.getClassid());
+                        }
+                    }
+                    else{
+                        c.add(0);
+                    }
+                }
+                return classService.list3(c,start,size);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
             return new Msg("查询失败", 401);

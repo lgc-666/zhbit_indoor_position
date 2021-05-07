@@ -2,9 +2,13 @@ package zhbit.za102.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import zhbit.za102.bean.Class;
 import zhbit.za102.bean.Msg;
 import zhbit.za102.bean.map_mamage;
 import zhbit.za102.service.MapMamageService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 public class MapMamageController {
@@ -34,20 +38,37 @@ public class MapMamageController {
     }
 
     @GetMapping("/listMapMamageNoPage")
-    public Msg list()throws Exception {  //所有用户
+    public Msg list(@RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {  //所有用户
         try {
-            return new Msg(mapMamageService.list());
+            List<Class> c = new ArrayList<>();
+            if("管理员".equals(roledesc)||"访客".equals(roledesc)){
+                return new Msg(mapMamageService.list());
+            }
+            else {
+                return new Msg(mapMamageService.list2(username));
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
             return new Msg("查询失败", 401);
         }
     }
 
+    @GetMapping("/listMapMamageNoPage2")
+    public Msg list()throws Exception {  //所有用户
+        try {
+                return new Msg(mapMamageService.list());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Msg("查询失败", 401);
+        }
+    }
 
     @GetMapping("/listMapMamage")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
                     @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
         try {
+
             return mapMamageService.list(start, size);
         } catch (Exception e) {
             e.printStackTrace();

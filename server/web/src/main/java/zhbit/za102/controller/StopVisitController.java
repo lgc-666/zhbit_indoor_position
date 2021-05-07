@@ -5,12 +5,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import zhbit.za102.Utils.RedisUtils;
-import zhbit.za102.bean.Device;
-import zhbit.za102.bean.Msg;
-import zhbit.za102.bean.StopVisit;
-import zhbit.za102.bean.Visit;
+import zhbit.za102.bean.*;
 import zhbit.za102.service.DeviceService;
 import zhbit.za102.service.LogrecordService;
+import zhbit.za102.service.MapMamageService;
 import zhbit.za102.service.StopVisitService;
 
 import javax.annotation.Resource;
@@ -28,12 +26,34 @@ public class StopVisitController {
     DeviceService deviceService;
     @Autowired
     LogrecordService logrecordService;
+    @Autowired
+    MapMamageService mapMamageService;
 
     @GetMapping("/listStopVisit")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
-                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+                    @RequestParam(value = "size",defaultValue = "8")int size,
+                    @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {  //所有用户
         try {
-            return stopvisitService.list(start, size);
+            List<Integer> c = new ArrayList<>();
+            //已改
+            if("管理员".equals(roledesc)) {
+                return stopvisitService.list(start, size);
+            }
+            else {
+                List<map_mamage> list = mapMamageService.list2(username);
+                for (map_mamage map : list) {
+                    List<StopVisit> b = stopvisitService.list4(map.getIndoorname());
+                    if(b.size()!=0){
+                        for (StopVisit g : b){
+                            c.add(g.getStopVisitId());
+                        }
+                    }
+                    else{
+                        c.add(0);
+                    }
+                }
+                return stopvisitService.list3(c,start,size);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return new Msg("查询失败", 401);

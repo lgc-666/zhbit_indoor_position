@@ -83,4 +83,27 @@ public class VisitService {
     public Integer getsortNow(String address,String indoorname) {
         return visitMapper.getsortNow(address,indoorname).getNowcount();
     }
+
+    public Msg list3(List<Integer> us, int start, int size) {
+        PageHelper.startPage(start, size);//只对该语句以后的第一个查询语句得到的数据进行分页
+        VisitExample example = new VisitExample();
+        example.createCriteria().andVisitidIn(us);
+        List<Visit> a= visitMapper.selectByExample(example);
+        PageInfo<Visit> page = new PageInfo<>(a);
+        return new Msg(page);
+    }
+
+    public List<Visit> list4(String indoorname) {
+        VisitExample example = new VisitExample();
+        example.createCriteria().andIndoornameEqualTo(indoorname);
+        //example.setOrderByClause("mid desc");
+        return visitMapper.selectByExample(example);
+    }
+
+    public List<Visit> list5(String indoorname,String staffdata) {
+        VisitExample example = new VisitExample();
+        example.createCriteria().andAddressEqualTo(staffdata).andIndoornameEqualTo(indoorname);
+        //example.setOrderByClause("mid desc");
+        return visitMapper.selectByExample(example);
+    }
 }

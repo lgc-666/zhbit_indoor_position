@@ -3,13 +3,15 @@ package zhbit.za102.controller;
 import org.joda.time.DateTimeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import zhbit.za102.bean.Machine;
-import zhbit.za102.bean.Msg;
+import zhbit.za102.bean.*;
 import zhbit.za102.service.MachineService;
+import zhbit.za102.service.MapMamageService;
 
 import java.text.SimpleDateFormat;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 
 
@@ -17,12 +19,34 @@ import java.util.TimeZone;
 public class MachineController {
     @Autowired
     MachineService machineService;
+    @Autowired
+    MapMamageService mapMamageService;
 
     @GetMapping("/listmachine")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
-                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {
+                    @RequestParam(value = "size",defaultValue = "8")int size,
+                    @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {
         try {
-            return machineService.list(start, size);
+            List<String> c = new ArrayList<>();
+            if("管理员".equals(roledesc)) {
+                return machineService.list(start, size);
+            }
+            else {
+                List<map_mamage> list = mapMamageService.list2(username);
+                for (map_mamage map : list) {
+                    List<Machine> b = machineService.list4(map.getIndoorname());
+                    if(b.size()!=0){
+                        for (Machine g : b){
+                            c.add(g.getMachineid());
+                        }
+                    }
+                    else{
+                        c.add("");
+                    }
+                }
+
+                return machineService.list3(c,start,size);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return new Msg("查询失败", 401);
@@ -31,9 +55,23 @@ public class MachineController {
 
     @GetMapping("/listmachineSearch")
     public Msg listSearch(@RequestParam("staffdata") String staffdata,@RequestParam(value = "start",defaultValue = "1")int start,
-                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {
+                          @RequestParam(value = "size",defaultValue = "8")int size,
+                          @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {
         try {
-            return machineService.listSearch(staffdata,start, size);
+            List<String> c = new ArrayList<>();
+            if("管理员".equals(roledesc)) {
+                return machineService.listSearch(staffdata,start, size);
+            }
+            else {
+                List<map_mamage> list = mapMamageService.list2(username);
+                for (map_mamage map : list) {
+                    List<Machine> b = machineService.list5(map.getIndoorname(),staffdata);
+                    for (Machine g : b){
+                        c.add(g.getMachineid());
+                    }
+                }
+                return machineService.list3(c,start,size);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return new Msg("查询失败", 401);
