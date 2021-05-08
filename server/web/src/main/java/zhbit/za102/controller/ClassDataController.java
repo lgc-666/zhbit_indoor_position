@@ -6,8 +6,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import zhbit.za102.bean.*;
+import zhbit.za102.bean.Class;
 import zhbit.za102.dao.ClassDataMapper;
 import zhbit.za102.service.ClassDataService;
+import zhbit.za102.service.ClassService;
+import zhbit.za102.service.MapMamageService;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -16,7 +19,10 @@ import java.util.*;
 public class ClassDataController {
     @Autowired
     ClassDataService classDataService;
-
+    @Autowired
+    MapMamageService mapMamageService;
+    @Autowired
+    ClassService classService;
 
     @GetMapping("/getSum")
     public Msg getSum(@RequestParam("indoorname")String indoorname)throws Exception {
@@ -102,4 +108,23 @@ public class ClassDataController {
         }
     }
 
+    @GetMapping("/getSumData")
+    public Msg getSumData()throws Exception {  //所有用户
+        try {
+            Map<String,Integer> dataList = new HashMap<>();
+
+            List<map_mamage> a = mapMamageService.list();
+            if(a.size()!=0){
+                for(map_mamage b:a){
+                    List<Class> c = classService.list3(b.getIndoorname());
+                    Integer data = classDataService.getSumData(b.getIndoorname(),c.size());
+                    dataList.put(b.getIndoorname(),data);
+                }
+            }
+            return new Msg(dataList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Msg("查询失败", 401);
+        }
+    }
 }

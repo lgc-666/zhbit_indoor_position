@@ -85,6 +85,20 @@ public class ClassDataService {
         return classDataMapper.getInCustomerPerHour(address,dateTime,indoorname);
     }
 
+    public Integer getSumData(String indoorname,int size){
+        Integer data = 0;
+        GregorianCalendar calendar = new GregorianCalendar();
+        int hours = calendar.get(Calendar.HOUR_OF_DAY);
+        ClassDataExample example = new ClassDataExample();
+        example.createCriteria().andHoursEqualTo(hours).andIndoornameEqualTo(indoorname);
+        example.setOrderByClause("updatetime desc");
+        List<ClassData> a = classDataMapper.selectByExample(example);
+        for(ClassData b:a.subList(0,size)){
+            data+=b.getClassNowNumber();
+        }
+        return data;
+    }
+
     //获取上一个小时的数据
     public List<ClassData> getPreHour(){
         GregorianCalendar calendar = new GregorianCalendar();
