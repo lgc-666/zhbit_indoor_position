@@ -70,6 +70,13 @@ public class LocationService {
         return locationMapper.selectByExample(example);
     }
 
+    public List<Location> mapByMac(String mac, Date start, Date end) {
+        LocationExample example = new LocationExample();
+        example.createCriteria().andMacEqualTo(mac).andBeatBetween(start,end);
+        example.setOrderByClause("beat");
+        return locationMapper.selectByExample(example);
+    }
+
     public List<String> searchLocationMac(String indoorname){
         return locationMapper.searchLocationMac(indoorname);
     }

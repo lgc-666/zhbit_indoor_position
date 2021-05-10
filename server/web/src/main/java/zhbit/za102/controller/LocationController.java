@@ -6,18 +6,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import zhbit.za102.bean.Location;
 import zhbit.za102.bean.Msg;
+import zhbit.za102.bean.map_mamage;
 import zhbit.za102.service.LocationService;
+import zhbit.za102.service.MapMamageService;
 
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @RestController
 public class LocationController {
     @Autowired
     LocationService locationService;
+    @Autowired
+    MapMamageService mapMamageService;
 
     @GetMapping("/listLocation")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
@@ -73,6 +75,35 @@ public class LocationController {
         } catch (Exception e) {
             e.printStackTrace();
             return new Msg("查询失败", 401);
+        }
+    }
+
+    @GetMapping("/mapByMac")
+    public Msg mapByMac(@RequestParam("mac") String mac,@RequestParam("start")String start,@RequestParam("end")String end){  //所有用户
+        try {
+            //string转date
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+            Date date1 = sdf.parse(start);
+            Date date2 = sdf.parse(end);
+            List<Location> a = locationService.mapByMac(mac,date1,date2);
+            List<map_mamage> dataList = new ArrayList<>();
+            if(a.size()!=0){
+                for(int i=0;i<a.size();i++){
+                    List<map_mamage> b = mapMamageService.listSearchByIndoorname(a.get(i).getIndoorname());
+                    if(b.size()!=0){
+                        map_mamage c = b.get(0);
+                        dataList.add(c);
+                    }
+                }
+                return new Msg(dataList);
+            }
+            else{
+                return new Msg("查询失败，该时间段内暂无该mac的记录", 401);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Msg("查询失败，该时间段内暂无该mac的记录", 401);
         }
     }
 }

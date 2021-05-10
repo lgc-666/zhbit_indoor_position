@@ -164,6 +164,7 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/deleteAllCach", "perms[deleteAllCach]");
         filterChainDefinitionMap.put("/listUserByRoleNoPage", "perms[listUserByRoleNoPage]");
         filterChainDefinitionMap.put("/getSumData", "perms[getSumData]");
+        filterChainDefinitionMap.put("/mapByMac", "perms[mapByMac]");
 
         filterChainDefinitionMap.put("/**", "url");
         shiroFilterFactoryBean.setFilters(customisedFilter);
