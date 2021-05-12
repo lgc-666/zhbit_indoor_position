@@ -1,6 +1,6 @@
 package zhbit.za102.bean;
 
-public class SumData {  //当日总值统计
+public class SumData {
     /**
      * 当日室内客流人数
      */

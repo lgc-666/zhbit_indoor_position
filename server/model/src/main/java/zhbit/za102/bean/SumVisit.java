@@ -1,7 +1,7 @@
 package zhbit.za102.bean;
 
 public class SumVisit {
-    private Integer sum_visited_times;  //某区域某天的总访问次数
+    private Integer sum_visited_times;
 
     public Integer getSum_visited_times() {
         return sum_visited_times;

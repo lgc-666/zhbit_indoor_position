@@ -27,9 +27,7 @@ public class ClassDataController {
     @GetMapping("/getSum")
     public Msg getSum(@RequestParam("indoorname")String indoorname)throws Exception {
         try {
-            //获得系统时间
             Date date1=new Date(System.currentTimeMillis());
-            //格式化时间格式
             SimpleDateFormat simp02=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
             String dateTime =simp02.format(date1);
             SumData sum = classDataService.getSum(dateTime,indoorname).get(0);
@@ -43,7 +41,7 @@ public class ClassDataController {
 
     @GetMapping("/listClassData")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
-                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {
         try {
             return classDataService.list(start, size);
         } catch (Exception e) {
@@ -53,7 +51,7 @@ public class ClassDataController {
     }
 
     @GetMapping("/getMainData")
-    public Msg getMainData(@RequestParam("address")String address, @RequestParam("dateTime")String dateTime,@RequestParam("indoorname")String indoorname)throws Exception {  //所有用户
+    public Msg getMainData(@RequestParam("address")String address, @RequestParam("dateTime")String dateTime,@RequestParam("indoorname")String indoorname)throws Exception {
         try {
             Integer in_class_number = 0;
             Integer jmpOut = 0;
@@ -61,8 +59,7 @@ public class ClassDataController {
             Integer class_now_number  = 0;
             if(!indoorname.equals("")){
                 List<ClassData> shop_dataList = classDataService.getMainData(address,dateTime,indoorname);
-                if (shop_dataList.size()!=0) {    //return new Msg("当天无访问数据,可选择历史日期进行查看",401);
-                    System.out.println("第一行："+shop_dataList.get(0).getClassNowNumber());
+                if (shop_dataList.size()!=0) {
                     for (ClassData shop_data:shop_dataList) {
                         in_class_number+=shop_data.getInClassNumber();
                         new_student+=shop_data.getNewStudent();
@@ -85,7 +82,7 @@ public class ClassDataController {
     }
 
     @GetMapping("/getCustomerPerHour")
-    public Msg getCustomerPerHour(@RequestParam("address")String address, @RequestParam("dateTime")String dateTime,@RequestParam("indoorname")String indoorname)throws Exception {  //所有用户
+    public Msg getCustomerPerHour(@RequestParam("address")String address, @RequestParam("dateTime")String dateTime,@RequestParam("indoorname")String indoorname)throws Exception {
         try {
             List<CustomerPerHour> CustomerPerHourList = classDataService.getCustomerPerHour(address, dateTime, indoorname);
             Collections.reverse(CustomerPerHourList);
@@ -97,7 +94,7 @@ public class ClassDataController {
     }
 
     @GetMapping("/getInCustomerPerHour")
-    public Msg getInCustomerPerHour(@RequestParam("address")String address, @RequestParam("dateTime")String dateTime,@RequestParam("indoorname")String indoorname)throws Exception {  //所有用户
+    public Msg getInCustomerPerHour(@RequestParam("address")String address, @RequestParam("dateTime")String dateTime,@RequestParam("indoorname")String indoorname)throws Exception {
         try {
             List<InCustomerPerHour> inCustomerPerHourList = classDataService.getInCustomerPerHour(address, dateTime, indoorname);
             Collections.reverse(inCustomerPerHourList);
@@ -109,7 +106,7 @@ public class ClassDataController {
     }
 
     @GetMapping("/getSumData")
-    public Msg getSumData()throws Exception {  //所有用户
+    public Msg getSumData()throws Exception {
         try {
             Map<String,Integer> dataList = new HashMap<>();
 

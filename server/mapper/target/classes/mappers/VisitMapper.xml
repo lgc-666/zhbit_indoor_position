@@ -16,17 +16,17 @@
     <result column="indoorname" jdbcType="VARCHAR" property="indoorname" />
   </resultMap>
 
-  <!--获取区域实时人数-->
+
   <select id="getsortNow" resultType="zhbit.za102.bean.NowCount" >
     SELECT COUNT(*) AS nowcount FROM visit where ( inJudge = 1 ) and address = #{address} and indoorname = #{indoorname}
   </select>
 
-  <!--获取某区域某天的总访问次数-->
+
   <select id="getSumVisit" resultType="zhbit.za102.bean.SumVisit" >
     SELECT SUM(visited_times) AS sum_visited_times FROM visit where ( datediff ( in_time , #{dateTime} ) = 0 ) and address = #{address} and indoorname = #{indoorname}
   </select>
 
-  <!--获取某区域某天的停留时间-->
+
   <select id="getSumStoptime" resultType="zhbit.za102.bean.SumStoptime" >
     SELECT SUM(rt) AS Stoptime FROM visit where ( datediff ( in_time , #{dateTime} ) = 0 ) and address = #{address} and indoorname = #{indoorname}
   </select>

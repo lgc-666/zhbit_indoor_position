@@ -8,41 +8,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-/**
- * 跨域配置：解决前后端分离时产生的跨域问题(前后端端口可能不一致)
- */
 
-/*
-@Configuration
-public class  CorsConfig{
-    private CorsConfiguration buildConfig() {
-        CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.addAllowedOrigin("*"); // 1
-        corsConfiguration.addAllowedHeader("*"); // 2
-        corsConfiguration.addAllowedMethod("*"); // 3
-        return corsConfiguration;
-    }
-
-    @Bean
-    public CorsFilter corsFilter() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", buildConfig()); // 4
-        return new CorsFilter(source);
-    }
-}
-*/
-/*@Configuration
-public class CorsConfig implements WebMvcConfigurer {
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        //所有请求都允许跨域
-        registry.addMapping("/**")
-                .allowedOrigins("*")   //支持跨域请求
-                .allowedMethods("*")
-                .allowedHeaders("*")
-                .allowCredentials(true);//支持cookie跨域
-    }
-}*/
 @Configuration
 public class CorsConfig {
     private CorsConfiguration buildConfig() {

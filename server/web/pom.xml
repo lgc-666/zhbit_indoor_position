@@ -37,8 +37,7 @@
             </exclusions>
         </dependency>
 
-        <!--后期引入-->
-        <!--junit测试-->
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -66,13 +65,12 @@
         </dependency>
 
 
-        <!-- thymeleaf -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
-        <!-- elastic search -->
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
@@ -90,21 +88,20 @@
             <artifactId>transport</artifactId>
         </dependency>
 
-        <!-- 用了 elasticsearch 就要加这么一个，不然要com.sun.jna.Native 错误 -->
         <dependency>
             <groupId>com.sun.jna</groupId>
             <artifactId>jna</artifactId>
             <version>3.0.9</version>
         </dependency>
 
-        <!-- thymeleaf legacyhtml5 模式支持 -->
+
         <dependency>
             <groupId>net.sourceforge.nekohtml</groupId>
             <artifactId>nekohtml</artifactId>
             <version>1.9.22</version>
         </dependency>
 
-        <!-- 测试支持 -->
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -112,7 +109,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- shiro -->
         <dependency>
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-core</artifactId>
@@ -124,28 +120,24 @@
             <version>1.3.2</version>
         </dependency>
 
-        <!-- Shiro-redis插件 -->
         <dependency>
             <groupId>org.crazycake</groupId>
             <artifactId>shiro-redis</artifactId>
             <version>3.1.0</version>
         </dependency>
 
-        <!-- fastjson -->
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
             <version>1.2.72</version>
         </dependency>
 
-        <!--spring security-->
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
 
-        <!-- servlet依赖. -->
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
@@ -165,7 +157,6 @@
     </dependencies>
 
     <build>
-        <!-- 为jar包取名 -->
         <finalName>za102</finalName>
         <plugins>
             <plugin>
@@ -179,7 +170,7 @@
                 <executions>
                     <execution>
                         <goals>
-                            <goal>repackage</goal><!--可以把依赖的包都打包到生成的Jar包中-->
+                            <goal>repackage</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -208,7 +199,6 @@
             </plugin>
         </plugins>
 
-        <!--解决文件扫描不到的问题-->
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -225,7 +215,7 @@
                     <include>**/*.properties</include>
                     <include>**/*.xml</include>
                 </includes>
-                <filtering>false</filtering>  <!-- 是否使用过滤器 -->
+                <filtering>false</filtering>
             </resource>
         </resources>
 

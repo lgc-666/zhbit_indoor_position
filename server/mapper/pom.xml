@@ -31,14 +31,14 @@
             <artifactId>mysql-connector-java</artifactId>
         </dependency>
 
-        <!--数据库连接池-->
+
         <!--<dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>druid</artifactId>
             <version>1.1.21</version>
         </dependency>
 -->
-        <!-- mybatis逆向工程jar包 -->
+
         <dependency>
             <groupId>org.mybatis.generator</groupId>
             <artifactId>mybatis-generator-core</artifactId>
@@ -48,7 +48,7 @@
     </dependencies>
 
     <build>
-        <!-- 为jar包取名 -->
+
         <finalName>za102</finalName>
         <plugins>
             <plugin>
@@ -83,7 +83,7 @@
             </plugin>
         </plugins>
 
-        <!--解决文件扫描不到的问题-->
+
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -100,7 +100,7 @@
                     <include>**/*.properties</include>
                     <include>**/*.xml</include>
                 </includes>
-                <filtering>false</filtering>  <!-- 是否使用过滤器 -->
+                <filtering>false</filtering>
             </resource>
         </resources>
     </build>

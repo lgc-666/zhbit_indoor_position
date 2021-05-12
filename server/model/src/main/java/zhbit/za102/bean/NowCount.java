@@ -1,7 +1,7 @@
 package zhbit.za102.bean;
 
 public class NowCount {
-    private Integer nowcount;  //实时区域人数的返回函数
+    private Integer nowcount;
 
     public Integer getNowcount() {
         return nowcount;

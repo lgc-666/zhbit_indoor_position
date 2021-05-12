@@ -14,7 +14,7 @@
     <packaging>jar</packaging>
 
     <dependencies>
-        <!-- redis -->
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
@@ -22,7 +22,7 @@
     </dependencies>
 
     <build>
-        <!-- 为war包取名 -->
+
         <finalName>za102</finalName>
         <plugins>
             <plugin>

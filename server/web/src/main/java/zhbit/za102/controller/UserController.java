@@ -28,7 +28,7 @@ public class UserController {
 
     @GetMapping("/listUser")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
-                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {
         try {
             return userService.list(start, size);
         } catch (Exception e) {
@@ -39,7 +39,7 @@ public class UserController {
 
     @GetMapping("/listUserSearch")
     public Msg listSearch(@RequestParam("staffdata") String staffdata,@RequestParam(value = "start",defaultValue = "1")int start,
-                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {
         try {
             return userService.listSearch(staffdata,start, size);
         } catch (Exception e) {
@@ -49,14 +49,14 @@ public class UserController {
     }
 
     @GetMapping("/editUser")
-    public Msg edit(@RequestParam("uid") Integer uid) {  //指定其中一个用户
+    public Msg edit(@RequestParam("uid") Integer uid) {
         try {
             Map<String, List<Role>> role_list = new HashMap<>();
             List<Role> rs = roleService.list();
             User user = userService.get(uid);
             List<Role> roles = roleService.listRoles(user);
-            role_list.put("all_role", rs);   //全部角色
-            role_list.put("user_role", roles);  //用户的角色
+            role_list.put("all_role", rs);
+            role_list.put("user_role", roles);
             return new Msg(role_list);
         } catch (Exception e) {
             e.printStackTrace();
@@ -76,7 +76,7 @@ public class UserController {
     }
 
     @PutMapping("/updateUser")
-    public Msg update(@RequestParam("uid") Integer uid, @RequestParam("roleIds") Integer[] roleIds) { //更改用户权限(传数组)
+    public Msg update(@RequestParam("uid") Integer uid, @RequestParam("roleIds") Integer[] roleIds) {
         try {
             User user=userService.get(uid);
             userRoleService.setRoles(user, roleIds);
@@ -88,11 +88,10 @@ public class UserController {
     }
 
     @PutMapping("/updatePassword")
-    public Msg updatePassword(@RequestParam("newpassword") String newpassword, @RequestParam("uid") Integer uid) { //更改密码
+    public Msg updatePassword(@RequestParam("newpassword") String newpassword, @RequestParam("uid") Integer uid) {
         try {
             User user=userService.get(uid);
             System.out.println(newpassword+"----"+user.getUsername());
-            // 如果在修改的时候没有设置密码，就表示不改动密码,改了密码要重新加盐生成新的加密密钥
             if (newpassword.length() != 0) {
                 String salt = new SecureRandomNumberGenerator().nextBytes().toString();
                 int times = 2;  //2次加密
@@ -134,7 +133,7 @@ public class UserController {
     }
 
     @GetMapping("/listUserByRoleNoPage")
-    public Msg list()throws Exception {  //所有用户
+    public Msg list()throws Exception {
         try {
             List<User> a = new ArrayList<>();
             List<UserRole> urs = userRoleService.list();

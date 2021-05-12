@@ -15,17 +15,17 @@
     <result column="indoorname" jdbcType="VARCHAR" property="indoorname" />
   </resultMap>
 
-  <!--获取不重复的记录行数-->
+
   <select id="listdis" resultType="java.lang.Integer" >
     SELECT  count(DISTINCT adress) FROM class_data
   </select>
 
-  <!--获取展示数据值-->
+
   <select id="getSum" resultType="zhbit.za102.bean.SumData" >
     SELECT SUM(in_class_number) AS sum_in ,SUM(new_student) AS sum_new FROM class_data where ( datediff ( updatetime , #{dateTime} ) = 0 ) and indoorname = #{indoorname}
   </select>
 
-  <!--获取展示数据值-->
+
   <select id="getMainData" resultType="zhbit.za102.bean.ClassData" >
     select  id,adress,new_student as newStudent,in_class_number as inClassNumber,jump_out as jumpOut,class_now_number as classNowNumber,hour_class_number as hourClassNumber,hour_in_class_number as hourInClassNumber,updatetime,hours from class_data where adress = #{address} and indoorname = #{indoorname} and  ( datediff ( updatetime , #{dateTime} ) = 0 ) order by updatetime desc
   </select>
@@ -36,12 +36,12 @@
     select hour_in_class_number,hours from class_data where adress = #{address} and indoorname = #{indoorname} and  ( datediff ( updatetime , #{dateTime} ) = 0 ) order by updatetime desc
   </select>
 
-  <!--获取上一个小时的数据-->
+
   <select id="getPreHour" resultType="zhbit.za102.bean.ClassData" >
     select * from class_data where hours=#{prehour} order by updatetime desc
   </select>
 
-  <!--倒序排序更新最新的那一条-->
+
   <update id="updateClassDataTwo" >
         UPDATE
         class_data
@@ -52,7 +52,7 @@
  </update>
 
 
-  <!--找当前时间和更新时间的差在1小时内的-->
+
   <select id="selectWithin1hour" resultType="java.lang.Integer" >
     select count(*) from class_data where updatetime>=(NOW() - interval 1 hour)
   </select>
@@ -60,7 +60,7 @@
     select count(*) from class_data where adress = #{address} and indoorname = #{indoorname} and updatetime>=(NOW() - interval 1 hour)
   </select>
 
-  <!--差值小于1小时则进行更新-->
+
   <update id="updateWithin1hour" >
         UPDATE
         class_data
@@ -69,7 +69,7 @@
         WHERE
         id in (select id from (select * from class_data ORDER BY updatetime desc LIMIT #{num})as t)
   </update>
-  <!--差值大于1小时进行插入-->
+
   <insert id="insertClassData">
         insert into class_data
         (adress,new_student,in_class_number,jump_out,class_now_number,hour_class_number,hour_in_class_number,updatetime,hours,indoorname)
@@ -77,7 +77,7 @@
         (#{address},0,0,0,0,0,0,CURRENT_TIMESTAMP,#{hours},#{indoorname})
   </insert>
 
-  <!--倒序排序更新最新的那一条-->
+
   <update id="updateClassData" >
         UPDATE
         class_data
@@ -93,7 +93,7 @@
   </select>
 
 
-  <!--更新跳出量、动态当前客流量和小时客流量-->
+
   <update id="updateDataThread" >
         UPDATE
         class_data
@@ -103,7 +103,7 @@
         id in (select id from (select * from class_data where adress=#{address} ORDER BY updatetime desc LIMIT 1)as t) and indoorname = #{indoorname}
   </update>
 
-  <!--更新遗漏的跳出量-->
+
   <update id="updateExtraJumpOut">
       UPDATE
       class_data

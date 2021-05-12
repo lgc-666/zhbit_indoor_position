@@ -2,9 +2,7 @@ package zhbit.za102.bean;
 
 import java.io.Serializable;
 
-/**
- * 消息响应类
- */
+
 public class Msg implements Serializable {
     private final static int SUCCESS_CODE = 200 ;
     private final static String SUCCESS_MESSAGE = "请求成功";
@@ -47,7 +45,7 @@ public class Msg implements Serializable {
         this.success = success;
     }
 
-    //请求成功
+
     public Msg() {
         this.code = SUCCESS_CODE;
         this.message = SUCCESS_MESSAGE;
@@ -60,7 +58,7 @@ public class Msg implements Serializable {
             this.data = data;
     }
 
-    //请求失败
+
     public Msg(String data, int code) {
             this.code = code;
             this.message = FAILURE_MESSAGE;

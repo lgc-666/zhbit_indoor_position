@@ -61,7 +61,6 @@ public class MachineService {
 
     @Cacheable(value="Machine",key = "'list'+'-'+#start+'-'+#size")
     public Msg list(int start, int size) {
-        //start是当前第几页，size是每页显示几条，设置id倒排序
         PageHelper.startPage(start, size, "mid desc");
         List<Machine> us = list();
         PageInfo<Machine> page = new PageInfo<>(us);
@@ -69,7 +68,6 @@ public class MachineService {
     }
 
     public Msg listSearch(String staffdata,int start, int size) {
-        //start是当前第几页，size是每页显示几条，设置id倒排序
         PageHelper.startPage(start, size, "mid desc");
         List<Machine> us = list2(staffdata);
         PageInfo<Machine> page = new PageInfo<>(us);
@@ -85,17 +83,15 @@ public class MachineService {
     public List<Machine> list4(String indoorname) {
         MachineExample example = new MachineExample();
         example.createCriteria().andIndoornameEqualTo(indoorname);
-        //example.setOrderByClause("mid desc");
         return machineMapper.selectByExample(example);
     }
     public List<Machine> list5(String indoorname,String staffdata) {
         MachineExample example = new MachineExample();
         example.createCriteria().andMachineidEqualTo(staffdata).andIndoornameEqualTo(indoorname);
-        //example.setOrderByClause("mid desc");
         return machineMapper.selectByExample(example);
     }
     public Msg list3(List<String> us, int start, int size) {
-        PageHelper.startPage(start, size);//只对该语句以后的第一个查询语句得到的数据进行分页
+        PageHelper.startPage(start, size);
         MachineExample example = new MachineExample();
         example.createCriteria().andMachineidIn(us);
         List<Machine> a= machineMapper.selectByExample(example);

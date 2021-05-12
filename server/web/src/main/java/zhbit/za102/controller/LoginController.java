@@ -80,9 +80,6 @@ public class LoginController {
             {
                     httpSession.setAttribute("roledesc",roledesc);
                     str = roledesc;
-                //"已记住"和"已认证"是有区别的,并非是认证通过的用户
-                //token.setRememberMe(true);
-                /*根据http状态码设置code*/
                 try {
                     subject.login(token);
                     System.out.println(SecurityUtils.getSubject().getPrincipal());

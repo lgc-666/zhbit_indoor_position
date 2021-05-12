@@ -32,7 +32,7 @@ public class StopVisitController {
     @GetMapping("/listStopVisit")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
                     @RequestParam(value = "size",defaultValue = "8")int size,
-                    @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {  //所有用户
+                    @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {
         try {
             List<Integer> c = new ArrayList<>();
             //已改
@@ -62,7 +62,7 @@ public class StopVisitController {
 
     @GetMapping("/listStopVisitSearch")
     public Msg listSearch(@RequestParam("staffdata") String staffdata,@RequestParam(value = "start",defaultValue = "1")int start,
-                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {
         try {
             return stopvisitService.listSearch(staffdata, start, size);
         } catch (Exception e) {
@@ -111,10 +111,7 @@ public class StopVisitController {
                    @RequestParam("rt") String rt, @RequestParam("visited_times") Integer visited_times, @RequestParam("inJudge") Integer inJudge, @RequestParam("mac") String mac) {
         try {
             StopVisit c=new StopVisit();
-            //String转成Date
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            //Date date = sdf.parse(beat);
-            //获取当前时间
             Calendar d=Calendar.getInstance(TimeZone.getTimeZone("GMT:+08:00"));
             c.setInTime(sdf.parse(in_time));
             c.setBeat(d.getTime());
@@ -137,21 +134,15 @@ public class StopVisitController {
     @PutMapping("/doStopVisit")
     public Msg doStopVisit(@RequestParam("stop_visit_id") Integer stop_visit_id,@RequestParam("address") String address,@RequestParam("indoorname") String indoorname) {
         try {
-            System.out.println("已处理关闭报警器");
-            //更新禁止区域处理状态
             StopVisit u= new StopVisit();
             u.setHandlejudge(1);
             u.setStopVisitId(stop_visit_id);
             u.setIndoorname(indoorname);
             stopvisitService.update(u);
-            //关闭禁止区域的报警器（报警器类型是5）
             List<Device> devices = deviceService.listbyAdress(address,indoorname);
             for(Device d:devices){
-                System.out.println("设备的id："+d.getId());
-                System.out.println("设备操控");
-                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
-                String dt = df.format(new Date());//获取当前系统时间并格式化
-                System.out.println("id-stataus-dt的值："+d.getId()+"-"+dt);
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                String dt = df.format(new Date());
                 logrecordService.addchange(d.getId(),"0",dt,indoorname);
             }
             return new Msg("操作成功");

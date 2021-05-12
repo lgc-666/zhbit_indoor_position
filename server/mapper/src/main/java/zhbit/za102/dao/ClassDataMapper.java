@@ -35,22 +35,22 @@ public interface ClassDataMapper {
     void updateWithin1hour(@Param("hours")Integer hours,@Param("num")Integer num);
     void insertClassData (@Param("address")String address,@Param("hours")Integer hours,@Param("indoorname")String indoorname);
     void updateClassData(@Param("address")String address,@Param("newStudent")Integer newStudent,@Param("inClassNumber")Integer inClassNumber,@Param("hourInClassNumber")Integer hourInClassNumber,@Param("indoorname")String indoorname);
-    //查询当前小时进店量
+
     Integer searchNowHour_in_customer_number(@Param("address")String address,@Param("indoorname")String indoorname);
-    //存储跳出量、动态当前客流量和小时客流量
+
     void updateDataThread(@Param("address") String address,@Param("dynamic_customer")Integer dynamic_customer,@Param("jumpOut_customer")Integer jumpOut_customer,@Param("subHour_customer")Integer subHour_customer,@Param("indoorname")String indoorname);
 
     void updateExtraJumpOut(@Param("address")String address,@Param("indoorname")String indoorname);
     void deleteExpiredShop_data();
 
-    //获取主要数据
+
     List<ClassData> getMainData(@Param("address") String address, @Param("dateTime") String dateTime,@Param("indoorname")String indoorname);
     List<CustomerPerHour> getCustomerPerHour(@Param("address")String address, @Param("dateTime")String dateTime,@Param("indoorname")String indoorname);
     List<InCustomerPerHour> getInCustomerPerHour(@Param("address")String address, @Param("dateTime")String dateTime,@Param("indoorname")String indoorname);
     List<SumData> getSum(@Param("dateTime")String dateTime,@Param("indoorname")String indoorname);
 
     Integer listdis();
-    //获取上一个小时的数据
+
     List<ClassData> getPreHour(@Param("prehour") Integer prehour);
     void updateClassDataTwo(@Param("address")String address,@Param("Number")Integer Number,@Param("indoorname")String indoorname);
 

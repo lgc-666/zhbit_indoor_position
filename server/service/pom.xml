@@ -20,21 +20,18 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
 
-        <!--矩阵运算-->
         <dependency>
             <groupId>gov.nist.math</groupId>
             <artifactId>jama</artifactId>
             <version>1.0.2</version>
         </dependency>
 
-        <!-- Spring Boot pagehelper 依赖 -->
         <dependency>
             <groupId>com.github.pagehelper</groupId>
             <artifactId>pagehelper-spring-boot-starter</artifactId>
             <version>1.2.5</version>
         </dependency>
 
-        <!-- commons-lang:apache公共工具包 -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
@@ -47,7 +44,6 @@
     </dependencies>
 
     <build>
-        <!-- 为jar包取名 -->
         <finalName>za102</finalName>
         <plugins>
             <plugin>

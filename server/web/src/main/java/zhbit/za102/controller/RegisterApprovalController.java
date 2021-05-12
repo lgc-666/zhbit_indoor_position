@@ -27,7 +27,7 @@ public class RegisterApprovalController {
 
     @GetMapping("/listregisterApproval")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
-                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {
         try {
             return registerApprovalService.list(start, size);
         } catch (Exception e) {
@@ -36,7 +36,7 @@ public class RegisterApprovalController {
         }
     }
     @PostMapping("/agreeregisterApproval")
-    public Msg agree(@RequestParam("agreeid") Integer id,String rolename) {  //所有用户
+    public Msg agree(@RequestParam("agreeid") Integer id,String rolename) {
         try {
             List<RegisterApproval> rs = registerApprovalService.list(id);
             User user = new User();

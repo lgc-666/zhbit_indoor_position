@@ -23,7 +23,7 @@ public class LocationController {
 
     @GetMapping("/listLocation")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
-                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {
         try {
             return locationService.list(start, size);
         } catch (Exception e) {
@@ -33,7 +33,7 @@ public class LocationController {
     }
 
     @GetMapping("/getDBlocation")
-    public Msg getDBlocation(){  //所有用户
+    public Msg getDBlocation(){
         try {
             return new Msg(locationService.list());
         } catch (Exception e) {
@@ -45,11 +45,10 @@ public class LocationController {
     @GetMapping("/getDBlocationNotRepeat")
     public Msg getDBlocation2(@RequestParam("indoorname")String indoorname,@RequestParam("start")String start,@RequestParam("end")String end){  //所有用户
         try {
-            //string转date
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             Date date1 = sdf.parse(start);
             Date date2 = sdf.parse(end);
-            List<String> listmac=locationService.searchLocationMac(indoorname); //去重
+            List<String> listmac=locationService.searchLocationMac(indoorname);
             List<Location> listlocation = new ArrayList<>();
             for(String mac:listmac){
                 List<Location> a= locationService.searchLocationleatMac(mac,date1,date2);
@@ -67,8 +66,7 @@ public class LocationController {
     @GetMapping("/listByMac")
     public Msg listByMac(@RequestParam("mac") String mac,@RequestParam("indoorname")String indoorname,@RequestParam("start")String start,@RequestParam("end")String end){  //所有用户
         try {
-            //string转date
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             Date date1 = sdf.parse(start);
             Date date2 = sdf.parse(end);
             return new Msg(locationService.listByMac2(mac,indoorname,date1,date2));
@@ -81,8 +79,7 @@ public class LocationController {
     @GetMapping("/mapByMac")
     public Msg mapByMac(@RequestParam("mac") String mac,@RequestParam("start")String start,@RequestParam("end")String end){  //所有用户
         try {
-            //string转date
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             Date date1 = sdf.parse(start);
             Date date2 = sdf.parse(end);
             List<Location> a = locationService.mapByMac(mac,date1,date2);

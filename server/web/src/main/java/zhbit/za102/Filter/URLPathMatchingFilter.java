@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Set;
 
 /**
- * url过滤器,非spring管理，要借助SpringContextUtils这个工具类，来获取PermissionService的实例来进行注入
+ * url过滤器
  */
 
 public class URLPathMatchingFilter extends PathMatchingFilter {
@@ -29,13 +29,11 @@ public class URLPathMatchingFilter extends PathMatchingFilter {
             permissionService = SpringContextUtils.getContext().getBean(PermissionService.class);
 
         String requestURI = getPathWithinApplication(request);
-        System.out.println("requestURI:" + requestURI);
-        int url_buffer = request.getLocalPort();// 这个方法也只能获得不包含参数的请求url，但是绝对路径
+        int url_buffer = request.getLocalPort();
         System.out.println("url_port="+url_buffer);
 
         Subject subject = SecurityUtils.getSubject();
-        System.out.println("1");
-       // System.out.println(((HttpServletRequest)request).getSession().getId());  //获取前端发来的sessionId
+
         System.out.println(((HttpServletRequest)request).getCookies());
         System.out.println(subject.isAuthenticated());
         System.out.println(SecurityUtils.getSubject().getPrincipal());
@@ -45,9 +43,6 @@ public class URLPathMatchingFilter extends PathMatchingFilter {
             System.out.println("2");
             return false;
         }
-        System.out.println("3");
-        // 看看这个路径权限里有没有维护，如果没有维护，一律放行(也可以改为一律不放行)
-       // System.out.println("permissionService:"+permissionService);
         boolean needInterceptor = permissionService.needInterceptor(requestURI);
         System.out.println(needInterceptor);
         if (!needInterceptor) {

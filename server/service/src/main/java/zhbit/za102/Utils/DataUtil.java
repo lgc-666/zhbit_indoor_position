@@ -53,26 +53,21 @@ public class DataUtil {
 
     Timestamp dt;
     /**
-     * 检查Mac是否已经存在过，看普通区域和禁止区域这2个访问数据表里是否有这个mac,且mac只有一个
+     * 检查Mac是否已经存在过
      * @param mac
      * @return
      */
     public  boolean checkExist(String mac,String address,String indoorname){
-        //先看缓存有没有，没有就到数据库去找，数据库有就放入缓存
         if ((redisUtil.hget("visit",mac+'-'+address+'-'+indoorname)!=null)||(redisUtil.hget("stopvisit",mac+'-'+address+'-'+indoorname)!=null)){
-            System.out.println("扣1");
             return true;
         }
         else{
-            System.out.println("扣2");
             List<Visit> visits = visitService.findvisitByMac(mac,address);
             List<StopVisit> stopvisits = stopVisitService.findstopVisitByMac(mac);
             if (visits.isEmpty()||stopvisits.isEmpty()){
-                System.out.println("扣3");
-                return false;  //数据库中没有才给在进程中插入new_student值
+                return false;
             }
             else{
-                System.out.println("扣4");
                 if(!visits.isEmpty()){
                     for(int i=0; i<visits.size();i++)
                     {
@@ -89,7 +84,7 @@ public class DataUtil {
         }
     }
 
-    /**存AP发来的mac值到缓存(键--项--值)**/
+    /**存AP发来的mac值到缓存**/
     public void cacheMac(String address, Integer inJudge, Date in_time, Date left_time, String rt, Integer visited_times, Date beat, Date last_in_time, String mac, Integer rssi, String indoorname){
         macMap = new HashMap<>();
         submacMap = new HashMap<>();
@@ -104,7 +99,6 @@ public class DataUtil {
         submacMap.put("beat",beat);
         submacMap.put("last_in_time",last_in_time);
         submacMap.put("indoorname",indoorname);
-        //macMap.put(mac+'-'+address,submacMap);
         redisUtil.hset("visit",mac+'-'+address+'-'+indoorname,submacMap);
     }
     public void cacheStopMac(String address, Integer inJudge, Date in_time, Date left_time, String rt, Integer visited_times, Date beat, Integer handleJudge, String mac, Integer rssi, String indoorname){
@@ -121,15 +115,11 @@ public class DataUtil {
         submacMap.put("beat",beat);
         submacMap.put("handleJudge",handleJudge);
         submacMap.put("indoorname",indoorname);
-        //macMap.put(mac+'-'+address,submacMap);
-        //redisUtil.hmset("stopvisit",macMap);
         redisUtil.hset("stopvisit",mac+'-'+address+'-'+indoorname,submacMap);
     }
 
-    //向普通区域表插数值（已改）
+    //向普通区域表插数值
     public boolean insertMac(String address, Integer inJudge, Integer visited_times, String mac, Integer rssi,String indoorname){
-        //SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置日期格式
-        //String dt = df.format(new Date());// 获取当前系统时间并格式化
         dt = new Timestamp(System.currentTimeMillis());
         Visit u = new Visit();
         u.setMac(mac);
@@ -143,16 +133,12 @@ public class DataUtil {
         u.setBeat(dt);
         u.setLastInTime(dt);
         u.setIndoorname(indoorname);
-        //插入数据库
         visitService.add(u);
-        //插入redis缓存
         cacheMac(address,inJudge,dt,dt,"0",visited_times,dt,dt,mac,rssi,indoorname);
         return true;
     }
     //向禁止区域表插数值
     public boolean insertStopMac(String address, Integer inJudge, Integer visited_times, String mac, Integer rssi,String indoorname) throws Exception {
-        //SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置日期格式
-        //String dt = df.format(new Date());// 获取当前系统时间并格式化
         dt = new Timestamp(System.currentTimeMillis());
         StopVisit u = new StopVisit();
         u.setMac(mac);
@@ -166,73 +152,53 @@ public class DataUtil {
         u.setBeat(dt);
         u.setHandlejudge(0);
         u.setIndoorname(indoorname);
-        //插入数据库
         stopVisitService.add(u);
-        //插入redis缓存
         cacheStopMac(address,inJudge,dt,dt,"0",visited_times,dt,0,mac,rssi,indoorname);
 
-        //非法进入开启报警器（报警器类型是5）
         System.out.println("非法进入开启报警器");
-        List<Device> devices = deviceService.listbyAdress(address,indoorname);  //按type类型为5进行设备搜索
+        List<Device> devices = deviceService.listbyAdress(address,indoorname);
         if(devices.size()!=0){
             for(Device d:devices){
-                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
-                String dt = df.format(new Date());//获取当前系统时间并格式化
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                String dt = df.format(new Date());
                 logrecordService.addchange(d.getId(),"1",dt,indoorname);
-                //把要操作的设备id加入到redis的list中
-/*                List<List<String>> b = (List<List<String>>)(List) redisUtil.lGet("MachineList",0,-1); //获取list的所有值
-                if(b.size()!=0&&b!=null){ //缓存中有值才处理，没值则退出
-                    List<String> c= b.get(0);
-                    if(c.size()!=0 && c!=null){
-                        c.add(d.getId());
-                        redisUtil.del("MachineList");
-                        redisUtil.lSet("MachineList",c);
-                        //启动智能硬件设备信号接收
-                        //deviceService.monitor();
-                    }
-                }
-                */
             }
         }
         return true;
     }
 
-    //初始化区域数据统计表：针对tomcat关闭2小时后启动和tomcat关闭一下又启动的场景
+    //初始化区域数据统计表
     public boolean initClassData(){
-        if (classDataService.selectWithin1hour()==0){  //当前时间和更新时间的差不在1小时内则插入（大于1小时）
+        if (classDataService.selectWithin1hour()==0){
             insertClassData();
             return true;
-        }else{ //如果差值在1小时内则更新
+        }else{
             Calendar c = Calendar.getInstance();
-            Integer hours = c.get(Calendar.HOUR_OF_DAY);  //HOUR_OF_DAY指24小时制
-            List<String> addressList = classService.findAllClass(); //列表包含了区域名相同地图名不同的
+            Integer hours = c.get(Calendar.HOUR_OF_DAY);
+            List<String> addressList = classService.findAllClass();
             classDataService.updateWithin1hour(hours,addressList.size());
         }
         return true;
     }
 
-    //向数据统计表插数值（已改）
     public boolean insertClassData(){
-        Calendar c = Calendar.getInstance();  //获取当前的时间
+        Calendar c = Calendar.getInstance();
         int hours = c.get(Calendar.HOUR_OF_DAY);
         List<Class> addressList = classService.findAllClassBean();
-        //有多少个区域就插入多少条数据（插入区域名和地图名）
         for (Class a:addressList) {
             classDataService.insertClassData(a.getAdress(),hours,a.getIndoorname());
         }
         return true;
     }
 
-    //获取普通区域的相应mac的用户信息（先找缓存，缓存没有则找数据库并插入到缓存）
+    //获取普通区域的相应mac的用户信息
     public Map<String,Object> getMacMap(String mac,String address,String indoorname)
     {
         if (redisUtil.hget("visit",mac+'-'+address+'-'+indoorname)!=null){
-            System.out.println("走第一种");
             return (Map)redisUtil.hget("visit",mac+'-'+address+'-'+indoorname);
         }
 
         else {
-            System.out.println("走第2种");
             List<Visit> visits = visitService.findvisitByMac(mac,address);
             for (int i = 0; i < visits.size(); i++) {
                 cacheMac(visits.get(i).getAddress(), visits.get(i).getInjudge(), visits.get(i).getInTime(), visits.get(i).getLeftTime(), visits.get(i).getRt(), visits.get(i).getVisitedTimes(), visits.get(i).getBeat(), visits.get(i).getLastInTime(), visits.get(i).getMac(), visits.get(i).getRssi(),visits.get(i).getIndoorname());
@@ -240,7 +206,7 @@ public class DataUtil {
             return (Map)redisUtil.hget("visit",mac+'-'+address+'-'+indoorname);
         }
     }
-    //获取禁止区域的相应mac的用户信息（先找缓存，缓存没有则找数据库并插入到缓存）
+    //获取禁止区域的相应mac的用户信息
     public Map<String,Object> getStopMacMap(String mac,String address,String indoorname)
     {
         if (redisUtil.hget("stopvisit",mac+'-'+address+'-'+indoorname)!=null)
@@ -263,7 +229,7 @@ public class DataUtil {
         redisUtil.hset("stopvisit",mac+'-'+address+'-'+indoorname,stopmacMap);
     }
 
-    //设备缓存初始化（把已在后台管理系统添加了的设备放到缓存中）
+    //设备缓存初始化
     public void refreshMachineCache(){
         List<Machine> machineList = machineService.listAll();
         Map<String,Object> machineMap = new HashMap<>();
@@ -292,7 +258,7 @@ public class DataUtil {
         return redisUtil.hget("machineAP",machineid);
     }
 
-    //刷新设备缓存心跳
+
     public void refreshMachineCacheBeat(String machineId){
         System.out.println(machineId);
         System.out.println(getmachineAP(machineId));
@@ -316,8 +282,6 @@ public class DataUtil {
             int endDay = calendar.get(Calendar.DAY_OF_YEAR);
             return endDay - startDay;
         } else {
-            /*  跨年不会出现问题，需要注意不满24小时情况（2016-03-18 11:59:59 和 2016-03-19 00:00:01的话差值为 0）  */
-            //  只格式化日期，消除不满24小时影响
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
             long startDateTime = dateFormat.parse(dateFormat.format(startDate)).getTime();
             long endDateTime = dateFormat.parse(dateFormat.format(endDate)).getTime();
@@ -326,14 +290,7 @@ public class DataUtil {
     }
 
     /**
-     * 排列组合：用到了递归
-     * @param shu  元素
-     * @param targ  要选多少个元素
-     * @param has   当前有多少个元素
-     * @param cur   当前选到的下标
-     *
-     * 1    2   3     //开始下标到2
-     * 1    2   4     //然后从3开始
+     * 排列组合
      */
     public void reSort(List<Map<String,Object>> shu, int targ, int has, int cur) {
             if(has == targ) {
@@ -348,59 +305,47 @@ public class DataUtil {
                 if(!stu2.contains(shu.get(i))) {
                     stu2.add(shu.get(i));
                     reSort(shu, targ, has+1, i);
-                    //if(stu2.size()!=0){
-                    stu2.remove(stu2.size()-1);  //删除最后一个元素
-                    //}
+                    stu2.remove(stu2.size()-1);
                 }
             }
     }
 
     public void clearstu2(){
-        //清空列表
         stu2.clear();
         stu3.clear();
         return;
-
     }
 
     /**利用RSSI得到设备距AP的距离(单位：米)**/
-    //A为距离探测设备1m时的rssi值的绝对值，最佳范围在45-49之间
-    //n为环境衰减因子，需要测试矫正，最佳范围在3.25-4.5之间
     public double GetDisFromRSSI(Integer rssi)
     {
         int A=45;
         double n=3.5;
         double rawDis = 0.0;
         double power = (-A - rssi) / (10 * n);
-        double height = 5.0;  //高度补偿值
-        rawDis = Math.pow(10, power);  //公式(pow是次方根)
-        //返回AP到UE的距离d（空间的）
-        //System.out.println(rawDis+"米");
-        //return rawDis;
-        if(rawDis<5.0){  //浮在空中的也算地面的
+        double height = 5.0;
+        rawDis = Math.pow(10, power);
+
+        if(rawDis<5.0){
             rawDis=5.0;
         }
         double d=Math.sqrt(Math.pow(rawDis, 2) - Math.pow(height, 2));
-        d=Double.valueOf(String.format("%.1f", d)); //保留1位小数
-        //返回AP到UE的水平面距离
+        d=Double.valueOf(String.format("%.1f", d));
         return d;
     }
 
     /**基于rssi的加权定位算法实现多个AP定位坐标求解**/
-    public Map<String, Double> CaculateByAPList(List<Map<String,Object>> apArray,String mac){ //接收[1, 2, 3]
+    public Map<String, Double> CaculateByAPList(List<Map<String,Object>> apArray,String mac){
         Map<String, Double> point=new HashMap<>();
-        //创建2个固定长度的2维数组
         double[][] a_array = new double[2][2];
         double[][] b_array = new double[2][1];
 
-        //距离数组(定义3维数组)
         double[] distanceArray = new double[3];
-        for(int i = 0; i< 3; i++)  //3点定位
+        for(int i = 0; i< 3; i++)
         {
             String id = apArray.get(i).get("machineId").toString();
             Map<String,Object> map =(Map<String,Object>)redisUtil.hget(mac,id);
             Integer rssivalue = (Integer) map.get("rssi");
-            System.out.println("3点定位用到的rssi："+rssivalue+"=========》用到的machineid："+id);
             distanceArray[i] = GetDisFromRSSI(rssivalue);
         }
 
@@ -408,7 +353,6 @@ public class DataUtil {
         for (int i = 0; i<2; i++)
         {
                a_array[i][0] = 2 * ((Double.valueOf(apArray.get(i).get("x").toString())) -(Double.valueOf(apArray.get(2).get("x").toString())));
-                //System.out.println("矩阵数组："+a_array[i][0]);
                 a_array[i][1] = 2 * ((Double.valueOf(apArray.get(i).get("y").toString())) -(Double.valueOf(apArray.get(2).get("y").toString())));
          }
 
@@ -423,23 +367,15 @@ public class DataUtil {
                     - Math.pow(distanceArray[i], 2);
         }
 
-        //将数组转换成Matrix类型  new Matrix() 要求必须是double类型
         Matrix A = new Matrix(a_array);
         Matrix B = new Matrix(b_array);
-        //计算 X=(A^T * A)^-1 * A^T * b
-        Matrix a1 = A.transpose(); // A的转置:A^T
-        Matrix a2 = a1.times(A); //A^T * A
-        Matrix a3 = a2.inverse().times(a1); //(A^T * A)^-1 * A^T
-        Matrix resultX = a3.times(B); //(A^T * A)^-1 * A^T * b
-        //Matrix resultX =A.inverse().times(B);
+
+        Matrix a1 = A.transpose();
+        Matrix a2 = a1.times(A);
+        Matrix a3 = a2.inverse().times(a1);
+        Matrix resultX = a3.times(B);
         double[][] res = resultX.getArray();
-/*        double[][] res = a3.getArray();
-        double[][] res2= new double[2][2];
-        for(int i=0; i<2; i++) {
-            for(int j=0; j<2; j++) {
-                res2[i][j] = res[i][j] * b_array[i][0];
-            }
-        }*/
+
         /*对应的权值*/
         double weight = 0;
         for (int i = 0; i < 3; i++)
@@ -448,12 +384,9 @@ public class DataUtil {
         }
 
         weight=Double.valueOf(String.format("%.1f", weight));
-        //System.out.println("weight："+weight);
         totalWeight += weight;
-        //System.out.println("totalWeight："+totalWeight);
         point.put("x",Double.valueOf(String.format("%.1f", res[0][0]*weight)));
         point.put("y",Double.valueOf(String.format("%.1f", res[1][0]*weight)));
-        //System.out.println("point："+point);
         return point;
     }
 
@@ -463,41 +396,29 @@ public class DataUtil {
         Integer MinX=null;
         Integer MinY=null;
         Map<String, Integer> point=new HashMap<>();
-        System.out.println("加权值："+totalWeight);
         Double x=totalX/totalWeight;
         Double y=totalY/totalWeight;
-        //double转integer：先转化成int类型，再转Integer
-        int x1= (int)Math.round(x); //        Math.round(x)四舍五入
+        int x1= (int)Math.round(x);
         int y1=(int)Math.round(y);
         Integer x2=Integer.valueOf(x1);
         Integer y2=Integer.valueOf(y1);
 
-        //加上所在区域的起点坐标X1
-        /**Class classbyAddress=classService.listbyaddress(atAddress).get(0);
-        List<String> list1 = Arrays.asList(StringUtils.split(classbyAddress.getX1(), ","));
-        List<String> listX1 = new ArrayList<>(list1);
-        MinX=Integer.valueOf(listX1.get(0));  //得到原坐标的x、y值
-        MinY=Integer.valueOf(listX1.get(1));
-
-        System.out.println("原坐标X："+MinX+"原坐标y："+MinY);
-        System.out.println("原坐标X2："+x2+"原坐标y2："+y2);**/
-        point.put("macx",x2);  //坐标以改为以原坐标做标准
+        point.put("macx",x2);
         point.put("macy",y2);
-       // System.out.println("加权后的point："+point);
-        totalWeight = 0;//一定要归0否则会一直叠加
+        totalWeight = 0;
         return  point;
     }
 
-    //根据区域x、y的范围值，判断在哪个区域,MinX-->MaxX,MinY-->MaxY(已改)
+    //根据区域x、y的范围值，判断在哪个区域
     public String judgeClass(Integer x,Integer y,String indoorname){
         String atAdress = null;
         Integer MinX=null;
         Integer MaxX=null;
         Integer MinY=null;
         Integer MaxY=null;
-        List<Class> classes = classService.list3(indoorname);  //获取指定地图的所有区域坐标做判别
+        List<Class> classes = classService.list3(indoorname);
         for(Class c:classes){
-            List<String> list1 = Arrays.asList(StringUtils.split(c.getX1(), ","));  //将（0,20）的坐标形式进行拆分
+            List<String> list1 = Arrays.asList(StringUtils.split(c.getX1(), ","));
             List<String> list2 = Arrays.asList(StringUtils.split(c.getX2(), ","));
             List<String> list3 = Arrays.asList(StringUtils.split(c.getY1(), ","));
             List<String> listX1 = new ArrayList<>(list1);

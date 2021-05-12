@@ -27,7 +27,6 @@
     </dependencies>
 
     <build>
-        <!-- 为jar包取名 -->
         <finalName>za102</finalName>
         <plugins>
             <plugin>

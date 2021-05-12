@@ -23,7 +23,7 @@ public class LogrecordController {
     @GetMapping("/listLogrecord")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
                     @RequestParam(value = "size",defaultValue = "8")int size,
-                    @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {  //所有用户
+                    @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {
         try {
             List<String> c = new ArrayList<>();
             if("管理员".equals(roledesc)) {
@@ -53,7 +53,7 @@ public class LogrecordController {
     @GetMapping("/listLogrecordSearch")
     public Msg listSearch(@RequestParam("staffdata") String staffdata,@RequestParam(value = "start",defaultValue = "1")int start,
                           @RequestParam(value = "size",defaultValue = "8")int size,
-                          @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {  //所有用户
+                          @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {
         try {
             List<String> c = new ArrayList<>();
             if("管理员".equals(roledesc)) {

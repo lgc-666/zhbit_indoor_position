@@ -17,7 +17,7 @@ public class MapMamageController {
 
 
     @GetMapping("/listMapMamageSearchByIndoorname")
-    public Msg listSearchIndoorname(@RequestParam("staffdata") String staffdata)throws Exception {  //所有用户
+    public Msg listSearchIndoorname(@RequestParam("staffdata") String staffdata)throws Exception {
         try {
             return  new Msg(mapMamageService.listSearchByIndoorname(staffdata).get(0));
         } catch (Exception e) {
@@ -28,7 +28,7 @@ public class MapMamageController {
 
     @GetMapping("/listMapMamageSearch")
     public Msg listSearch(@RequestParam("staffdata") String staffdata,@RequestParam(value = "start",defaultValue = "1")int start,
-                          @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+                          @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {
         try {
             return  mapMamageService.listSearch(staffdata, start, size);
         } catch (Exception e) {
@@ -38,7 +38,7 @@ public class MapMamageController {
     }
 
     @GetMapping("/listMapMamageNoPage")
-    public Msg list(@RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {  //所有用户
+    public Msg list(@RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {
         try {
             List<Class> c = new ArrayList<>();
             if("管理员".equals(roledesc)||"访客".equals(roledesc)){
@@ -66,7 +66,7 @@ public class MapMamageController {
 
     @GetMapping("/listMapMamage")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
-                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {
         try {
 
             return mapMamageService.list(start, size);

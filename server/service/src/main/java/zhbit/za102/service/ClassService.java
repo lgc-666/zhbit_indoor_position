@@ -43,14 +43,14 @@ public class ClassService {
         return classMapper.selectByExample(example);
     }
 
-    public List<Class> listPublic() { //普通区域列表
+    public List<Class> listPublic() {
         ClassExample example = new ClassExample();
         example.createCriteria().andStopjudgeEqualTo(0);
         example.setOrderByClause("classid desc");
         return classMapper.selectByExample(example);
     }
 
-    public List<Class> listStop() { //禁止区域列表
+    public List<Class> listStop() {
         ClassExample example = new ClassExample();
         example.createCriteria().andStopjudgeEqualTo(1);
         example.setOrderByClause("classid desc");

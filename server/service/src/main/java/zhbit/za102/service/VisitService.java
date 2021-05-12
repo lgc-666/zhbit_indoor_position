@@ -85,7 +85,7 @@ public class VisitService {
     }
 
     public Msg list3(List<Integer> us, int start, int size) {
-        PageHelper.startPage(start, size);//只对该语句以后的第一个查询语句得到的数据进行分页
+        PageHelper.startPage(start, size);
         VisitExample example = new VisitExample();
         example.createCriteria().andVisitidIn(us);
         List<Visit> a= visitMapper.selectByExample(example);

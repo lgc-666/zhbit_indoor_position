@@ -14,7 +14,7 @@ public class HotController {
 
     @GetMapping("/listHot")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
-                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {  //所有用户
+                    @RequestParam(value = "size",defaultValue = "8")int size)throws Exception {
         try {
             return hotService.list(start, size);
         } catch (Exception e) {

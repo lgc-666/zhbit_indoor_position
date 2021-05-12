@@ -27,7 +27,7 @@ public class RoleService {
 
     RedisUtils redisUtil;
 
-    public Set<String> listRoleNames(String userName) {  //去重
+    public Set<String> listRoleNames(String userName) {
         Set<String> result = new HashSet<>();
         List<Role> roles = listRoles(userName);
         for (Role role : roles) {

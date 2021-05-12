@@ -20,7 +20,7 @@ public class ClassController {
     MapMamageService mapMamageService;
 
     @GetMapping("/listClassNoPagePublic")
-    public Msg listPublic()throws Exception {  //所有用户
+    public Msg listPublic()throws Exception {
         try {
             return new Msg(classService.listPublic());
         } catch (Exception e) {
@@ -30,7 +30,7 @@ public class ClassController {
     }
 
     @GetMapping("/listClassNoPageStop")
-    public Msg listStop()throws Exception {  //所有用户
+    public Msg listStop()throws Exception {
         try {
             return new Msg(classService.listStop());
         } catch (Exception e) {
@@ -40,7 +40,7 @@ public class ClassController {
     }
 
     @GetMapping("/listClassNoPage")
-    public Msg list(@RequestParam("indoorname") String indoorname)throws Exception {  //所有用户
+    public Msg list(@RequestParam("indoorname") String indoorname)throws Exception {
         try {
                 return new Msg(classService.list3(indoorname));
         } catch (Exception e) {
@@ -49,7 +49,7 @@ public class ClassController {
         }
     }
     @GetMapping("/listClassNoPage2")
-    public Msg list2(@RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {  //所有用户
+    public Msg list2(@RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {
         try {
             List<Class> c = new ArrayList<>();
             if("管理员".equals(roledesc)){
@@ -74,7 +74,7 @@ public class ClassController {
     @GetMapping("/listClass")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
                     @RequestParam(value = "size",defaultValue = "8")int size,
-                    @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {  //所有用户
+                    @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {
         try {
             List<Integer> c = new ArrayList<>();
             if("管理员".equals(roledesc)) {
@@ -99,7 +99,7 @@ public class ClassController {
     @GetMapping("/listClassSearch")
     public Msg listSearch(@RequestParam("staffdata") String staffdata,@RequestParam(value = "start",defaultValue = "1")int start,
                           @RequestParam(value = "size",defaultValue = "8")int size,
-                          @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {  //所有用户
+                          @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {
         try {
             List<Integer> c = new ArrayList<>();
             if("管理员".equals(roledesc)) {

@@ -30,15 +30,12 @@ public class DatabaseRealm extends AuthorizingRealm {
 
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
-        // 能进入到这里，表示账号已经通过验证了
         String userName = (String) principalCollection.getPrimaryPrincipal();
-        // 通过service获取角色和权限
         Set<String> permissions = permissionService.listPermissions(userName);
         Set<String> roles = roleService.listRoleNames(userName);
 
         // 授权对象
         SimpleAuthorizationInfo s = new SimpleAuthorizationInfo();
-        // 把通过service获取到的角色和权限放进去
         s.setStringPermissions(permissions);
         s.setRoles(roles);
         return s;
@@ -62,9 +59,7 @@ public class DatabaseRealm extends AuthorizingRealm {
         //用户是否存在、验证密码
         if(null==user || !passwordEncoded.equals(passwordInDB))
             throw new AuthenticationException();
-        // 认证信息里存放账号密码, getName() 是当前Realm的继承方法,通常返回当前类名 :databaseRealm
        //进行自动校验
-        System.out.println("密码正确");
         SimpleAuthenticationInfo a = new SimpleAuthenticationInfo(userName, passwordInDB, ByteSource.Util.bytes(salt),
                 getName());
         return a;

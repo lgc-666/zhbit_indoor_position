@@ -95,12 +95,10 @@ public class MachineController {
             Machine c=machineService.get(mid);
             c.setAdress(adress);
             c.setMachineid(machineid);
-            //String转成Date
-            //SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            //Date date = sdf.parse(beat);
+
             SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
             isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-            Date date = isoFormat.parse(beat);  //"2010-05-23T09:01:02"
+            Date date = isoFormat.parse(beat);
             c.setBeat(date);
             if(leastRssi!=null){
                 c.setLeastrssi(leastRssi);
@@ -123,7 +121,7 @@ public class MachineController {
             Machine c=new Machine();
             c.setAdress(adress);
             c.setMachineid(machineid);
-            //String转成Date
+
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             Date date = sdf.parse(beat);
             c.setBeat(date);

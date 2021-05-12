@@ -16,9 +16,7 @@ import zhbit.za102.dao.RolePermissionMapper;
 
 import java.util.*;
 
-/**
- * 这里为了方便我把实现层给省去了
- */
+
 @Service
 @CacheConfig(cacheNames = "Permission")
 public class PermissionService {
@@ -36,7 +34,7 @@ public class PermissionService {
     RedisUtils redisUtil;
 
     public Set<String> listPermissions(String userName) {
-        Set<String> result = new HashSet<>();  //对结果进行去重
+        Set<String> result = new HashSet<>();
         List<Role> roles = roleService.listRoles(userName);
         String str="";
         List<RolePermission> rolePermissions = new ArrayList<>();
@@ -54,7 +52,7 @@ public class PermissionService {
                 str+=p.getUrl()+",";
             }
         }
-        List<String> list1 = Arrays.asList(StringUtils.split(str, ","));//由Arrays.asList() 返回的市Arrays的内部类ArrayList， 而不是java.util.ArrayList。
+        List<String> list1 = Arrays.asList(StringUtils.split(str, ","));
         List<String> list = new ArrayList<>(list1);
         for(String a:list)
         {
@@ -104,7 +102,7 @@ public class PermissionService {
     }
 
 
-    public boolean needInterceptor(String requestURI) { //判断url是否需要拦截
+    public boolean needInterceptor(String requestURI) {
         List<Permission> ps = list();
         String str="";
         for (Permission p : ps) {
@@ -112,7 +110,7 @@ public class PermissionService {
             {
                     str+=p.getUrl()+",";
             }
-            //由Arrays.asList() 返回的市Arrays的内部类ArrayList， 而不是java.util.ArrayList。
+
             List<String> list1 = Arrays.asList(StringUtils.split(str, ","));
             List<String> list = new ArrayList<>(list1);
             for(String a:list)
@@ -128,7 +126,7 @@ public class PermissionService {
     }
 
 
-    public Set<String> listPermissionURLs(String userName) {  //获取某角色拥有的url
+    public Set<String> listPermissionURLs(String userName) {
         Set<String> result = new HashSet<>();
         List<Role> roles = roleService.listRoles(userName);
         String str="";
@@ -147,7 +145,7 @@ public class PermissionService {
                 str+=p.getUrl()+",";
             }
         }
-        //由Arrays.asList() 返回的市Arrays的内部类ArrayList， 而不是java.util.ArrayList。
+
         List<String> list1 = Arrays.asList(StringUtils.split(str, ","));
         List<String> list = new ArrayList<>(list1);
         for(String a:list)
@@ -175,8 +173,8 @@ public class PermissionService {
         PageInfo<Permission> page1 = new PageInfo<>(ps);
         PageInfo<Permission> page2 = new PageInfo<>(currentPermissions);
         System.out.println("客户"+page1.getPageSize());
-        permission_list.put("all_permission", page1);   //全部权限（用于展示）---->拆开
-        permission_list.put("role_permission", page2);  //该角色的权限（用于默认选中）
+        permission_list.put("all_permission", page1);
+        permission_list.put("role_permission", page2);
         return new Msg(permission_list);
     }
 }

@@ -29,7 +29,6 @@ import java.time.Duration;
 @ConditionalOnClass(RedisOperations.class)
 @EnableConfigurationProperties(RedisProperties.class)
 public class RedisConfig {
-    //Redis 缓存配置类（防止可视化工具查看redis时数据为乱码）
     @Bean
     public RedisTemplate<Object, Object> redisTemplate(
             RedisConnectionFactory redisConnectionFactory) {

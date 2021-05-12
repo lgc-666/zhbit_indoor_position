@@ -1,6 +1,6 @@
 package zhbit.za102.bean;
 
-public class InCustomerPerHour {//存小时人流数据的实体（不用缓存不必序列化）
+public class InCustomerPerHour {
     /**
      * hour_in_customer_number 每小时的进店量
      */

@@ -23,7 +23,7 @@ public class VisitController {
     @GetMapping("/listVisit")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
                     @RequestParam(value = "size",defaultValue = "8")int size,
-                    @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {  //所有用户
+                    @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {
         try {
             List<Integer> c = new ArrayList<>();
             if("管理员".equals(roledesc)) {
@@ -53,7 +53,7 @@ public class VisitController {
     @GetMapping("/listVisitSearch")
     public Msg listSearch(@RequestParam("staffdata") String staffdata,@RequestParam(value = "start",defaultValue = "1")int start,
                           @RequestParam(value = "size",defaultValue = "8")int size,
-                          @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {  //所有用户
+                          @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {
         try {
             List<Integer> c = new ArrayList<>();
             if("管理员".equals(roledesc)) {
@@ -114,10 +114,7 @@ public class VisitController {
                    @RequestParam("rt") String rt, @RequestParam("visited_times") Integer visited_times, @RequestParam("inJudge") Integer inJudge, @RequestParam("mac") String mac) {
         try {
             Visit c=new Visit();
-            //String转成Date
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            //Date date = sdf.parse(beat);
-            //获取当前时间
             Calendar d=Calendar.getInstance(TimeZone.getTimeZone("GMT:+08:00"));
             c.setInTime(sdf.parse(in_time));
             c.setBeat(d.getTime());
@@ -138,7 +135,7 @@ public class VisitController {
     }
 
     @GetMapping("/sortVisit")
-    public Msg sortVisit(@RequestParam("dateTime")String dateTime,@RequestParam("address") String address,@RequestParam("indoorname") String indoorname)throws Exception {  //所有用户
+    public Msg sortVisit(@RequestParam("dateTime")String dateTime,@RequestParam("address") String address,@RequestParam("indoorname") String indoorname)throws Exception {
         try {
             if(visitService.getSumVisit(dateTime, address,indoorname)!=null){
                 return new Msg(visitService.getSumVisit(dateTime, address,indoorname).getSum_visited_times());
@@ -153,7 +150,7 @@ public class VisitController {
     }
 
     @GetMapping("/sortStoptime")
-    public Msg sortStoptime(@RequestParam("dateTime")String dateTime,@RequestParam("address") String address,@RequestParam("indoorname") String indoorname)throws Exception {  //所有用户
+    public Msg sortStoptime(@RequestParam("dateTime")String dateTime,@RequestParam("address") String address,@RequestParam("indoorname") String indoorname)throws Exception {
         try {
             if(visitService.getSumStoptime(dateTime, address,indoorname)!=null){
                 return new Msg(visitService.getSumStoptime(dateTime, address,indoorname).getStoptime());
@@ -168,7 +165,7 @@ public class VisitController {
     }
 
     @GetMapping("/sortNow")
-    public Msg sortNow(@RequestParam("address") String address,@RequestParam("indoorname") String indoorname)throws Exception {  //所有用户
+    public Msg sortNow(@RequestParam("address") String address,@RequestParam("indoorname") String indoorname)throws Exception {
         try {
                 return new Msg(visitService.getsortNow(address,indoorname));
         } catch (Exception e) {

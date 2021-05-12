@@ -43,7 +43,7 @@ public class DeviceController {
     @GetMapping("/listDevice")
     public Msg list(@RequestParam(value = "start",defaultValue = "1")int start,
                     @RequestParam(value = "size",defaultValue = "8")int size,
-                    @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {  //所有用户
+                    @RequestParam("roledesc") String roledesc,@RequestParam("username") String username)throws Exception {
         try {
             List<String> c = new ArrayList<>();
             if("管理员".equals(roledesc)) {
@@ -73,7 +73,7 @@ public class DeviceController {
     @GetMapping("/listDeviceSearch")
     public Msg listSearch(@RequestParam("staffdata") String staffdata,@RequestParam(value = "start",defaultValue = "1")int start,
                           @RequestParam(value = "size",defaultValue = "8")int size,@RequestParam("roledesc") String roledesc,
-                          @RequestParam("username") String username)throws Exception {  //所有用户
+                          @RequestParam("username") String username)throws Exception {
         try {
             List<String> c = new ArrayList<>();
             if("管理员".equals(roledesc)) {
@@ -159,10 +159,8 @@ public class DeviceController {
     @PutMapping("/updateStatus")
     public Msg updateStatus(@RequestParam("status") String status,@RequestParam("id") String id,@RequestParam("indoorname") String indoorname) {
         try {
-            System.out.println("设备操控");
-            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
-            String dt = df.format(new Date());//获取当前系统时间并格式化
-            System.out.println("id-stataus-dt的值："+id+"-"+status+"-"+dt);
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String dt = df.format(new Date());
             logrecordService.addchange(id,status,dt,indoorname);
         } catch (Exception e) {
             e.printStackTrace();
@@ -173,8 +171,6 @@ public class DeviceController {
     @PutMapping("/updateStatus2")
     public Msg updateStatus2(@RequestParam("status") String status) {
         try {
-            System.out.println("stataus的值："+status);
-            //通过在redis中存值判断是否进行自动控制
                 redisUtil.del("control");
                 redisUtil.set("control",status);
         } catch (Exception e) {

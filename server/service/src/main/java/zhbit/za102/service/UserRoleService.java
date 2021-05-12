@@ -39,7 +39,6 @@ public class UserRoleService {
     }
 
     public void setRoles2(User user, Integer roleIds) {
-        // 设置新的角色关系
         if (null != roleIds){
                 UserRole userRole = new UserRole();
                 if(roleIds!=0){

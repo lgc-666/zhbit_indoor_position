@@ -21,7 +21,6 @@ public class RolePermissionService {
 
     @CacheEvict(value="Permission", allEntries=true)
     public void resetPermission(String status,Integer rid,Integer pid) {
-        // 删除当前角色所有的权限
         if(status.equals("0")){
             deleteByRolePermission(rid,pid);
         }
@@ -36,14 +35,12 @@ public class RolePermissionService {
 
     @CacheEvict(value="Permission", allEntries=true)
     public void setPermissions(Role role, Integer[] permissionIds) {
-        // 删除当前角色所有的权限
         RolePermissionExample example = new RolePermissionExample();
         example.createCriteria().andRidEqualTo(role.getRid());
         List<RolePermission> rps = rolePermissionMapper.selectByExample(example);
         for (RolePermission rolePermission : rps)
             rolePermissionMapper.deleteByPrimaryKey(rolePermission.getId());
 
-        // 设置新的权限关系
         if (null != permissionIds)
             for (Integer pid : permissionIds) {
                 RolePermission rolePermission = new RolePermission();

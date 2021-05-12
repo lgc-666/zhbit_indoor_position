@@ -47,7 +47,7 @@ public class ClassDataService {
         return classDataMapper.selectByExample(example);
     }
 
-    //获取去重复记录
+
     public Integer listdis() {
         return classDataMapper.listdis();
     }
@@ -74,14 +74,14 @@ public class ClassDataService {
         return classDataMapper.getSum(dateTime,indoorname);
     }
 
-    public List<ClassData> getMainData(String address,String dateTime,String indoorname) {//获取主要数据
+    public List<ClassData> getMainData(String address,String dateTime,String indoorname) {
         return classDataMapper.getMainData(address,dateTime,indoorname);
     }
 
-    public List<CustomerPerHour> getCustomerPerHour(String address, String dateTime, String indoorname) {//获取主要数据
+    public List<CustomerPerHour> getCustomerPerHour(String address, String dateTime, String indoorname) {
         return classDataMapper.getCustomerPerHour(address,dateTime,indoorname);
     }
-    public List<InCustomerPerHour> getInCustomerPerHour(String address, String dateTime,String indoorname) {//获取主要数据
+    public List<InCustomerPerHour> getInCustomerPerHour(String address, String dateTime,String indoorname) {
         return classDataMapper.getInCustomerPerHour(address,dateTime,indoorname);
     }
 
@@ -99,7 +99,7 @@ public class ClassDataService {
         return data;
     }
 
-    //获取上一个小时的数据
+
     public List<ClassData> getPreHour(){
         GregorianCalendar calendar = new GregorianCalendar();
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
